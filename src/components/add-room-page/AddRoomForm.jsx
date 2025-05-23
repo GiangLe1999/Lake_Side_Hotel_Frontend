@@ -2,21 +2,17 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useMutation } from "@tanstack/react-query";
-import { addRoom } from "../service/room-service";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { addRoom, getRoomTypes } from "../service/room-service";
 import { toast } from "react-toastify";
-
-// Giả lập dữ liệu cho select
-const roomTypes = [
-  { id: 1, name: "Phone" },
-  { id: 2, name: "Laptop" },
-  { id: 3, name: "Tablet" },
-  { id: 4, name: "Accessory" },
-];
 
 // Validation schema using Yup
 const schema = yup.object().shape({
-  type: yup.string().required("Please select a product type"),
+  type: yup.string().required("Please select a room type"),
+  customType: yup.string().when("type", {
+    is: "new",
+    then: (schema) => schema.required("Please enter a new room type"),
+  }),
   thumbnail: yup
     .mixed()
     .test("required", "Please select a thumbnail image", (value) => {
@@ -55,7 +51,7 @@ const schema = yup.object().shape({
     }),
   price: yup
     .string()
-    .required("Please enter the product price")
+    .required("Please enter the room price")
     .matches(
       /^[0-9]+(\.[0-9]{1,2})?$/,
       "Please enter a valid price (e.g., 1500000 or 1500000.00)"
@@ -66,13 +62,44 @@ const schema = yup.object().shape({
 });
 
 const AddRoomForm = () => {
+  // Get room types query
+  const { data: roomTypes, isLoading: getRoomTypesLoading } = useQuery({
+    queryKey: ["roomTypes"],
+    queryFn: getRoomTypes,
+    select: (res) => res.data.data, // chỉ lấy phần data từ response
+  });
+
+  // Add room mutation
+  const { mutate: addRoomMutation, isPending: addRoomPending } = useMutation({
+    mutationFn: addRoom,
+    onSuccess: ({ data }) => {
+      if (data.status === 201) {
+        toast.success("Add room successfully No. " + data.data);
+        reset();
+
+        // Giải phóng URL preview
+        URL.revokeObjectURL(thumbnailPreview);
+        imagesPreview.forEach((url) => URL.revokeObjectURL(url));
+        setThumbnailPreview(null);
+        setImagesPreview([]);
+        setIsCustomType(false);
+      } else {
+        toast.error("Failed to add room", data.message);
+      }
+    },
+    onError: (err) => {
+      toast.error("Failed to add room," + err.message);
+    },
+  });
+
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [imagesPreview, setImagesPreview] = useState([]);
+  const [isCustomType, setIsCustomType] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = useForm({
     resolver: yupResolver(schema),
@@ -121,33 +148,10 @@ const AddRoomForm = () => {
     }
   };
 
-  const {
-    mutate: addRoomMutation,
-    isPending,
-    isSuccess,
-    error,
-  } = useMutation({
-    mutationFn: addRoom,
-    onSuccess: () => {
-      toast.success("Add room successfully");
-      console.log("Add room success");
-      reset();
-
-      // Giải phóng URL preview
-      URL.revokeObjectURL(thumbnailPreview);
-      imagesPreview.forEach((url) => URL.revokeObjectURL(url));
-      setThumbnailPreview(null);
-      setImagesPreview([]);
-    },
-    onError: (err) => {
-      console.error("Add room error:", err);
-      toast.error("Failed to add room");
-    },
-  });
-
   const onSubmit = (data) => {
+    const roomType = data.type === "new" ? data.customType : data.type;
     addRoomMutation({
-      type: "deluxe",
+      type: roomType,
       thumbnail: data.thumbnail[0],
       images: Array.from(data.images),
       price: data.price,
@@ -166,33 +170,59 @@ const AddRoomForm = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6 text-blue-500">
-        Thêm Sản Phẩm Mới
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 text-blue-500">Add New Room</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Trường Type (Select) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Loại sản phẩm <span className="text-red-500">*</span>
+            Room type <span className="text-red-500">*</span>
           </label>
           <select
             {...register("type")}
+            onChange={(e) => {
+              const value = e.target.value;
+              setIsCustomType(value === "new");
+              register("type").onChange(e);
+            }}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.type ? "border-red-500" : "border-gray-300"
             }`}
           >
-            <option value="">-- Choose room type --</option>
-            {roomTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
+            <option value="new">-- Choose room type --</option>
+            {!getRoomTypesLoading &&
+              roomTypes &&
+              roomTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            <option value="new">-- Add new room type --</option>
           </select>
           {errors.type && (
             <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
           )}
         </div>
+
+        {isCustomType && (
+          <div className="mt-2">
+            <input
+              type="text"
+              {...register("customType", {
+                required: "Please enter a new room type",
+              })}
+              placeholder="Enter new room type"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.customType ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.customType && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.customType.message}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Trường Thumbnail (Single File) */}
         <div>
@@ -220,33 +250,36 @@ const AddRoomForm = () => {
           {/* Thumbnail Preview */}
           {thumbnailPreview && (
             <div className="mt-2">
-              <div className="relative group">
-                <img
-                  src={thumbnailPreview}
-                  alt="Thumbnail preview"
-                  className="h-32 w-32 object-cover rounded-md border border-gray-300"
-                />
-                <div
-                  className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md cursor-pointer"
-                  onClick={() => {
-                    URL.revokeObjectURL(thumbnailPreview);
-                    setThumbnailPreview(null);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+              <div className="relative">
+                <div className="w-32 aspect-square rounded-md border border-gray-300 relative overflow-hidden group">
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    className="w-full h-full object-cover"
+                  />
+
+                  <div
+                    className="absolute inset-0 bg-black flex items-center justify-center opacity-0 group-hover:opacity-70 transition-opacity rounded-md cursor-pointer"
+                    onClick={() => {
+                      URL.revokeObjectURL(thumbnailPreview);
+                      setThumbnailPreview(null);
+                    }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -256,7 +289,7 @@ const AddRoomForm = () => {
         {/* Trường Images (Multiple Files) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ảnh chi tiết <span className="text-red-500">*</span>
+            Room images <span className="text-red-500">*</span>
             <span className="text-gray-500 text-xs ml-1">(Tối đa 5 ảnh)</span>
           </label>
           <input
@@ -287,7 +320,7 @@ const AddRoomForm = () => {
                     className="h-24 w-24 object-cover rounded-md border border-gray-300"
                   />
                   <div
-                    className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md cursor-pointer"
+                    className="absolute inset-0 bg-black flex items-center justify-center opacity-0 group-hover:opacity-70 transition-opacity rounded-md cursor-pointer"
                     onClick={() => {
                       // Xóa preview tại index này
                       URL.revokeObjectURL(preview);
@@ -320,16 +353,16 @@ const AddRoomForm = () => {
         {/* Trường Price (String to BigDecimal) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Giá <span className="text-red-500">*</span>
+            Price <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">
-              ₫
+              $
             </span>
             <input
               type="text"
               {...register("price")}
-              placeholder="Ví dụ: 1500000"
+              placeholder="Eg: 1500000"
               className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.price ? "border-red-500" : "border-gray-300"
               }`}
@@ -344,14 +377,14 @@ const AddRoomForm = () => {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
-              isSubmitting
+            disabled={addRoomPending}
+            className={`cursor-pointer quicksand-semibold w-full text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+              addRoomPending
                 ? "bg-blue-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {isSubmitting ? (
+            {addRoomPending ? (
               <div className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -373,10 +406,10 @@ const AddRoomForm = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Đang xử lý...
+                Processing...
               </div>
             ) : (
-              "Lưu Sản Phẩm"
+              "Add room"
             )}
           </button>
         </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import AddRoomForm from "../components/room/AddRoomForm";
+import AddRoomForm from "../components/add-room-page/AddRoomForm";
 
 const AddRoomPage = () => {
   return <AddRoomForm />;

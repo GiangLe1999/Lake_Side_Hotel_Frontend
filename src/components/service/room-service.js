@@ -24,3 +24,7 @@ export const addRoom = async (data) => {
 
   return apiClient.post("/rooms", formData);
 };
+
+export const getRoomTypes = async () => {
+  return apiClient.get("/rooms/types");
+};
