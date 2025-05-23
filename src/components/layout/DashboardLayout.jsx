@@ -12,8 +12,8 @@ import {
   User,
   Users,
 } from "lucide-react";
-import AddRoomPage from "../../pages/AddRoomPage";
-import DashboardStatsPage from "../../pages/DashboardStatsPage";
+import AddRoomPage from "../../pages/dashboard-pages/DashboardAddRoomPage";
+import DashboardStatsPage from "../../pages/dashboard-pages/DashboardStatsPage";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 // Main Dashboard Component
@@ -75,7 +75,7 @@ const DashboardLayout = () => {
   // };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="div flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform translate-x-0 duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
@@ -93,7 +93,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-6 px-3">
+        <nav className="min-h-screen mt-6 px-3">
           {/* {filteredMenuItems.map((item) => { */}
           {menuItems.map((item) => {
             const isActive = currentPath === item.path;
@@ -140,10 +140,10 @@ const DashboardLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className="flex-1">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="flex items-center justify-between h-16 px-6">
+        <header className="bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between h-[63px] px-6 bg-white">
             <div className="flex items-center">
               <button
                 // onClick={() => setSidebarOpen(true)}
