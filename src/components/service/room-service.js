@@ -28,3 +28,9 @@ export const addRoom = async (data) => {
 export const getRoomTypes = async () => {
   return apiClient.get("/rooms/types");
 };
+
+export const getRoomFilteredByType = async (data) => {
+  return apiClient.get(
+    `/rooms/filtered-by-type?pageNo=${data.pageNo}&pageSize=${data.pageSize}&roomType=${data.type}`
+  );
+};

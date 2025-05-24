@@ -1,31 +1,13 @@
 import { Bed } from "lucide-react";
 import React, { useState } from "react";
-import { getRoomTypes } from "../../service/room-service";
+import {
+  getRoomFilteredByType,
+  getRoomTypes,
+} from "../../service/room-service";
 import { useQuery } from "@tanstack/react-query";
-
-const recentBookings = [
-  {
-    id: "001",
-    guest: "John Doe",
-    room: "Deluxe Suite",
-    checkin: "2025-05-24",
-    status: "Confirmed",
-  },
-  {
-    id: "002",
-    guest: "Jane Smith",
-    room: "Standard Room",
-    checkin: "2025-05-25",
-    status: "Pending",
-  },
-  {
-    id: "003",
-    guest: "Mike Johnson",
-    room: "Presidential Suite",
-    checkin: "2025-05-26",
-    status: "Confirmed",
-  },
-];
+import formatDate from "../../../utils/format-date";
+import formatPriceUSD from "../../../utils/format-price";
+import Pagination from "../../common/pagination/Pagination";
 
 const RoomsTable = () => {
   const [filteredRoomType, setFilteredRoomType] = useState("");
@@ -33,6 +15,20 @@ const RoomsTable = () => {
   const { data: roomTypes, isLoading: getRoomTypesLoading } = useQuery({
     queryKey: ["roomTypes"],
     queryFn: getRoomTypes,
+    select: (res) => res.data.data, // chỉ lấy phần data từ response
+  });
+
+  const [pageNo, setPageNo] = useState(0);
+  const pageSize = 10;
+
+  const { data: rooms, isLoading: getRoomsLoading } = useQuery({
+    queryKey: ["roomsByType", filteredRoomType, pageNo],
+    queryFn: () =>
+      getRoomFilteredByType({
+        pageNo,
+        pageSize,
+        type: filteredRoomType,
+      }),
     select: (res) => res.data.data, // chỉ lấy phần data từ response
   });
 
@@ -74,33 +70,71 @@ const RoomsTable = () => {
               <th className="pb-5">Room Type</th>
               <th className="pb-5">Room Price</th>
               <th className="pb-5">Created At</th>
-              <th className="pb-5">Actions</th>
+              <th className="pb-5 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {recentBookings.map((booking) => (
-              <tr key={booking.id} className="border-t border-gray-100">
-                <td className="py-3 text-sm text-gray-900">#{booking.id}</td>
-                <td className="py-3 text-sm text-gray-900">{booking.guest}</td>
-                <td className="py-3 text-sm text-gray-600">{booking.room}</td>
-                <td className="py-3 text-sm text-gray-600">
-                  {booking.checkin}
-                </td>
-                <td className="py-3">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      booking.status === "Confirmed"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+            {getRoomsLoading
+              ? [...Array(5)].map((_, i) => (
+                  <tr
+                    key={i}
+                    className="border-t border-gray-100 animate-pulse"
                   >
-                    {booking.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+                    <td className="py-3">
+                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                    </td>
+                    <td className="py-3">
+                      <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    </td>
+                    <td className="py-3">
+                      <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                    </td>
+                    <td className="py-3">
+                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                    </td>
+                    <td className="py-3 flex items-center justify-center gap-2">
+                      <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                      <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                      <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                    </td>
+                  </tr>
+                ))
+              : rooms?.items?.map((room) => (
+                  <tr key={room?.id} className="border-t border-gray-100">
+                    <td className="py-3 text-sm text-gray-900">
+                      #00{room?.id}
+                    </td>
+                    <td className="py-3 text-sm text-gray-900">{room?.type}</td>
+                    <td className="py-3 text-sm text-gray-600">
+                      {formatPriceUSD(room?.price || null)}
+                    </td>
+                    <td className="py-3 text-sm text-gray-600">
+                      {formatDate(room?.createdAt || "", "dd/MM/yyyy")}
+                    </td>
+                    <td className="py-3 flex gap-2 justify-center text-xs font-semibold">
+                      <button
+                        // onClick={() => handleEdit(room.id)}
+                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        // onClick={() => handleDelete(room.id)}
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
+
+        <Pagination
+          pageCount={rooms?.totalPages || 1}
+          currentPage={pageNo}
+          onPageChange={(newPage) => setPageNo(newPage)}
+        />
       </div>
     </>
   );
