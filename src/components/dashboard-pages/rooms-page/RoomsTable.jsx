@@ -3,11 +3,10 @@ import React, { useState } from "react";
 import {
   getRoomFilteredByType,
   getRoomTypes,
-} from "../../service/room-service";
+} from "../../../service/room-service";
 import { useQuery } from "@tanstack/react-query";
-import formatDate from "../../../utils/format-date";
-import formatPriceUSD from "../../../utils/format-price";
 import Pagination from "../../common/pagination/Pagination";
+import RoomsTableRow from "./RoomsTableRow";
 
 const RoomsTable = () => {
   const [filteredRoomType, setFilteredRoomType] = useState("");
@@ -100,32 +99,12 @@ const RoomsTable = () => {
                   </tr>
                 ))
               : rooms?.items?.map((room) => (
-                  <tr key={room?.id} className="border-t border-gray-100">
-                    <td className="py-3 text-sm text-gray-900">
-                      #00{room?.id}
-                    </td>
-                    <td className="py-3 text-sm text-gray-900">{room?.type}</td>
-                    <td className="py-3 text-sm text-gray-600">
-                      {formatPriceUSD(room?.price || null)}
-                    </td>
-                    <td className="py-3 text-sm text-gray-600">
-                      {formatDate(room?.createdAt || "", "dd/MM/yyyy")}
-                    </td>
-                    <td className="py-3 flex gap-2 justify-center text-xs font-semibold">
-                      <button
-                        // onClick={() => handleEdit(room.id)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        // onClick={() => handleDelete(room.id)}
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+                  <RoomsTableRow
+                    key={room?.id}
+                    room={room}
+                    filteredRoomType={filteredRoomType}
+                    pageNo={pageNo}
+                  />
                 ))}
           </tbody>
         </table>

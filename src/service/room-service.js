@@ -1,36 +1,29 @@
-// services/room-service.js
 import apiClient from "../api/api-client";
 
-const roomService = {
-  getAll: (params = {}) => {
-    // Custom params hoặc xử lý trước khi gọi API
-    return apiClient.get("/rooms", { params });
-  },
+export const addRoom = async (data) => {
+  const formData = new FormData();
+  formData.append("type", data.type);
+  formData.append("thumbnail", data.thumbnail);
 
-  getById: (id) => {
-    return apiClient.get(`/rooms/${id}`);
-  },
+  data.images.forEach((file) => {
+    formData.append("images", file);
+  });
 
-  create: (data) => {
-    return apiClient.post("/rooms", data);
-  },
+  formData.append("price", data.price);
 
-  update: (id, data) => {
-    return apiClient.put(`/rooms/${id}`, data);
-  },
-
-  delete: (id) => {
-    return apiClient.delete(`/rooms/${id}`);
-  },
-
-  patch: (id, data) => {
-    return apiClient.patch(`/rooms/${id}`, data);
-  },
-
-  // Thêm các method riêng biệt nếu cần
-  getAvailableRooms: (date) => {
-    return apiClient.get(`/rooms/available`, { params: { date } });
-  },
+  return apiClient.post("/rooms", formData);
 };
 
-export default roomService;
+export const getRoomTypes = async () => {
+  return apiClient.get("/rooms/types");
+};
+
+export const getRoomFilteredByType = async (data) => {
+  return apiClient.get(
+    `/rooms/filtered-by-type?pageNo=${data.pageNo}&pageSize=${data.pageSize}&roomType=${data.type}`
+  );
+};
+
+export const deleteRoom = async (id) => {
+  return apiClient.delete(`/rooms?id=${id}`);
+};

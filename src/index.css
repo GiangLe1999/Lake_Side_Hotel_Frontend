@@ -38,3 +38,7 @@
 body {
   font-family: "Quicksand", sans-serif;
 }
+
+button {
+  @apply cursor-pointer;
+}
