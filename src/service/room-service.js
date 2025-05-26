@@ -25,5 +25,24 @@ export const getRoomFilteredByType = async (data) => {
 };
 
 export const deleteRoom = async (id) => {
-  return apiClient.delete(`/rooms?id=${id}`);
+  return apiClient.delete(`/rooms/${id}`);
+};
+
+export const getRoom = async (id) => {
+  return apiClient.get(`/rooms/${id}`);
+};
+
+export const editRoom = async ({ id, data }) => {
+  const formData = new FormData();
+  for (const key in data) {
+    if (key === "images") {
+      data.images.forEach((file) => {
+        formData.append("images", file);
+      });
+    } else {
+      formData.append(key, data[key]);
+    }
+  }
+
+  return apiClient.put(`/rooms/${id}`, formData);
 };

@@ -6,9 +6,11 @@ import { deleteRoom } from "../../../service/room-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Loading } from "../../common/Loading";
+import { useNavigate } from "react-router-dom";
 
 const RoomsTableRow = ({ room, filteredRoomType, pageNo }) => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { mutate: deleteRoomMutation, isPending: deleteRoomPending } =
@@ -37,6 +39,10 @@ const RoomsTableRow = ({ room, filteredRoomType, pageNo }) => {
       },
     });
 
+  const handleEdit = (id) => {
+    navigate(`/dashboard/rooms/${id}`);
+  };
+
   return (
     <>
       <tr key={room?.id} className="border-t border-gray-100">
@@ -50,7 +56,7 @@ const RoomsTableRow = ({ room, filteredRoomType, pageNo }) => {
         </td>
         <td className="py-3 flex gap-2 justify-center text-xs font-semibold">
           <button
-            // onClick={() => handleEdit(room.id)}
+            onClick={() => handleEdit(room.id)}
             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Edit
