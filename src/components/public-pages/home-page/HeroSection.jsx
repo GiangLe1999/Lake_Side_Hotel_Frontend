@@ -70,7 +70,7 @@ const HeroSection = () => {
                   type="date"
                   value={checkIn}
                   onChange={(e) => setCheckIn(e.target.value)}
-                  className="w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
+                  className="text-gray-800 w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
                 />
               </div>
             </div>
@@ -85,7 +85,7 @@ const HeroSection = () => {
                   type="date"
                   value={checkOut}
                   onChange={(e) => setCheckOut(e.target.value)}
-                  className="w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
+                  className="text-gray-800 w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ const HeroSection = () => {
                 <select
                   value={guests}
                   onChange={(e) => setGuests(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 appearance-none bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
+                  className="text-gray-800 w-full px-4 py-2 border-2 border-white/20 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 appearance-none bg-white/90 backdrop-blur-sm transition-all group-hover:border-white/40"
                 >
                   <option value={1}>1 Guest</option>
                   <option value={2}>2 Guests</option>
@@ -108,7 +108,7 @@ const HeroSection = () => {
                   <option value={5}>5+ Guests</option>
                 </select>
                 <ChevronDown
-                  className="absolute right-4 top-4 text-gray-600 pointer-events-none"
+                  className="absolute right-4 top-3 text-gray-600 pointer-events-none"
                   size={20}
                 />
               </div>

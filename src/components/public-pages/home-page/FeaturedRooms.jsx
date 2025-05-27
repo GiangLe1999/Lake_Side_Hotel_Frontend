@@ -169,7 +169,7 @@ const FeaturedRooms = () => {
                         .map((amenity, amenityIndex) => (
                           <span
                             key={amenityIndex}
-                            className="bg-gradient-to-r from-yellow-50 to-indigo-50 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium border border-yellow-100"
+                            className="bg-gradient-to-r from-yellow-100 to-orange-50 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium border border-yellow-100"
                           >
                             {amenity}
                           </span>

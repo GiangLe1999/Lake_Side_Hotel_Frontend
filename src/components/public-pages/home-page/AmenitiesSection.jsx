@@ -2,10 +2,10 @@ import {
   Car,
   Coffee,
   Dumbbell,
-  PenTool,
   Phone,
   Shield,
   Sparkles,
+  WavesLadder,
   Wifi,
   Wind,
 } from "lucide-react";
@@ -33,7 +33,7 @@ const amenities = [
     feature: "Rooftop Access",
   },
   {
-    icon: PenTool,
+    icon: WavesLadder,
     name: "Infinity Pool",
     desc: "Temperature-controlled oasis",
     color: "from-cyan-500 to-blue-500",
@@ -104,9 +104,9 @@ const AmenitiesSection = () => {
                 ></div>
 
                 <div
-                  className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${amenity.color} p-5 mx-auto mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-xl`}
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${amenity.color} p-4 grid place-items-center mx-auto mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}
                 >
-                  <amenity.icon className="w-10 h-10 text-white mx-auto" />
+                  <amenity.icon className="w-7 h-7 text-white mx-auto" />
                 </div>
 
                 <div className="text-center">
