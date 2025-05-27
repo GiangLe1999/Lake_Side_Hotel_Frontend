@@ -35,10 +35,20 @@
   font-style: normal;
 }
 
+.tangerine-bold {
+  font-family: "Tangerine", cursive;
+  font-weight: 700;
+  font-style: normal;
+}
+
 body {
   font-family: "Quicksand", sans-serif;
 }
 
 button {
   @apply cursor-pointer;
+}
+
+.main-btn {
+  @apply bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl flex items-center justify-center gap-2;
 }
