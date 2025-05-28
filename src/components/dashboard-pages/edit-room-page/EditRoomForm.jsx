@@ -3,7 +3,11 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { editRoom, getRoom, getRoomTypes } from "../../../service/room-service";
+import {
+  editRoom,
+  getRoomForAdmin,
+  getRoomTypes,
+} from "../../../service/room-service";
 import { Loading } from "../../common/Loading";
 import { roomSchema } from "../../../utils/room-form-schema";
 import {
@@ -12,6 +16,11 @@ import {
 } from "../../../utils/get-s3-url";
 import { urlToFile } from "../../../utils/url-to-file";
 import { createFileList } from "../../../utils/create-file-list";
+import {
+  compareFilesVsFiles,
+  compareFileVsFile,
+  compareSimpleArrays,
+} from "../../../utils/compare";
 
 const EditRoomForm = ({ id }) => {
   const { data: roomTypes, isLoading: getRoomTypesLoading } = useQuery({
@@ -22,14 +31,11 @@ const EditRoomForm = ({ id }) => {
 
   const { data: room, isLoading: getRoomLoading } = useQuery({
     queryKey: ["room", id],
-    queryFn: () => getRoom(id),
+    queryFn: () => getRoomForAdmin(id),
     select: (res) => res.data.data,
   });
 
   // Original data reference để so sánh
-  // useRef giữ được giá trị qua các lần render, nhưng không kích hoạt render lại khi giá trị thay đổi,
-  // nên nó phù hợp cho việc lưu trạng thái ẩn, mốc so sánh, hoặc các giá trị chỉ dùng nội bộ logic.
-  // nếu dùng useState, mỗi lần bạn cập nhật dữ liệu gốc thì component sẽ re-render
   const originalDataRef = useRef(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [changedFields, setChangedFields] = useState(new Set());
@@ -68,6 +74,9 @@ const EditRoomForm = ({ id }) => {
     originalImageKeys: [],
   });
 
+  // Amenities state
+  const [amenities, setAmenities] = useState([""]);
+
   // Form state
   const {
     register,
@@ -81,6 +90,11 @@ const EditRoomForm = ({ id }) => {
     defaultValues: {
       type: "",
       customType: "",
+      summary: "",
+      description: "",
+      area: "",
+      beds: "",
+      amenities: [""],
       thumbnail: null,
       images: null,
       price: "",
@@ -112,67 +126,16 @@ const EditRoomForm = ({ id }) => {
     const values = getValues();
     return {
       type: values.type === "new" ? values.customType : values.type,
+      summary: values.summary,
+      description: values.description,
+      area: values.area,
+      beds: values.beds,
+      amenities: values.amenities,
       price: values.price,
       thumbnail: values.thumbnail,
       images: values.images,
     };
   }, [getValues]);
-
-  // Compare thumbnail files
-  const compareThumbnailFiles = useCallback((current, original) => {
-    // If both are null/undefined
-    if (!current && !original) return true;
-
-    // If one is null and other isn't
-    if (!current || !original) return false;
-
-    // If current is FileList, get first file
-    const currentFile = current.length ? current[0] : current;
-    const originalFile = original.length ? original[0] : original;
-
-    // Compare file properties
-    if (!currentFile || !originalFile) return false;
-
-    return (
-      currentFile.name === originalFile.name &&
-      currentFile.size === originalFile.size &&
-      currentFile.type === originalFile.type &&
-      currentFile.lastModified === originalFile.lastModified
-    );
-  }, []);
-
-  // Compare image files arrays
-  const compareImageFiles = useCallback((current, original) => {
-    // If both are null/undefined
-    if (!current && !original) return true;
-
-    // If one is null and other isn't
-    if (!current || !original) return false;
-
-    // Convert FileList to Array if needed
-    const currentArray = Array.from(current);
-    const originalArray = Array.from(original);
-
-    // Compare lengths
-    if (currentArray.length !== originalArray.length) return false;
-
-    // Compare each file
-    for (let i = 0; i < currentArray.length; i++) {
-      const currentFile = currentArray[i];
-      const originalFile = originalArray[i];
-
-      if (
-        currentFile.name !== originalFile.name ||
-        currentFile.size !== originalFile.size ||
-        currentFile.type !== originalFile.type ||
-        currentFile.lastModified !== originalFile.lastModified
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }, []);
 
   // Detect changes in form data
   const detectChanges = useCallback(() => {
@@ -182,9 +145,32 @@ const EditRoomForm = ({ id }) => {
     const originalData = originalDataRef.current;
     const newChangedFields = new Set();
 
+    console.log(currentData.images);
+    console.log(originalData.images);
+
     // Compare basic fields
     if (currentData.type !== originalData.type) {
       newChangedFields.add("type");
+    }
+
+    if (currentData.summary !== originalData.summary) {
+      newChangedFields.add("summary");
+    }
+
+    if (currentData.description !== originalData.description) {
+      newChangedFields.add("description");
+    }
+
+    if (currentData.area !== originalData.area) {
+      newChangedFields.add("area");
+    }
+
+    if (currentData.beds !== originalData.beds) {
+      newChangedFields.add("beds");
+    }
+
+    if (!compareSimpleArrays(currentData.amenities, originalData.amenities)) {
+      newChangedFields.add("amenities");
     }
 
     if (currentData.price !== originalData.price) {
@@ -192,28 +178,30 @@ const EditRoomForm = ({ id }) => {
     }
 
     // Compare thumbnail
-    if (!compareThumbnailFiles(currentData.thumbnail, originalData.thumbnail)) {
+    if (!compareFileVsFile(currentData.thumbnail, originalData.thumbnail)) {
       newChangedFields.add("thumbnail");
     }
 
     // Compare images
-    if (!compareImageFiles(currentData.images, originalData.images)) {
+    if (!compareFilesVsFiles(currentData.images, originalData.images)) {
       newChangedFields.add("images");
     }
 
     setChangedFields(newChangedFields);
     setHasChanges(newChangedFields.size > 0);
-  }, [getCurrentFormData, compareThumbnailFiles, compareImageFiles]);
+  }, [getCurrentFormData]);
 
   // Effect to detect changes when form values change
-  // watchedValues là object được lấy từ watch() của react-hook-form.
-  // Khi người dùng thay đổi một field, watchedValues sẽ có tham chiếu mới, khiến useEffect chạy lại — vì tham chiếu thay đổi
-  // useEffect chỉ kiểm tra xem có phải là một tham chiếu khác so với lần trước hay không.
   useEffect(() => {
     detectChanges();
   }, [
     watchedValues.type,
     watchedValues.customType,
+    watchedValues.summary,
+    watchedValues.description,
+    watchedValues.area,
+    watchedValues.beds,
+    watchedValues.amenities,
     watchedValues.price,
     watchedValues.thumbnail,
     watchedValues.images,
@@ -226,6 +214,32 @@ const EditRoomForm = ({ id }) => {
       return changedFields.has(fieldName);
     },
     [changedFields]
+  );
+
+  // Handle amenities
+  const handleAddAmenity = useCallback(() => {
+    const newAmenities = [...amenities, ""];
+    setAmenities(newAmenities);
+    setValue("amenities", newAmenities);
+  }, [amenities, setValue]);
+
+  const handleRemoveAmenity = useCallback(
+    (index) => {
+      const newAmenities = amenities.filter((_, i) => i !== index);
+      setAmenities(newAmenities);
+      setValue("amenities", newAmenities);
+    },
+    [amenities, setValue]
+  );
+
+  const handleAmenityChange = useCallback(
+    (index, value) => {
+      const newAmenities = [...amenities];
+      newAmenities[index] = value;
+      setAmenities(newAmenities);
+      setValue("amenities", newAmenities);
+    },
+    [amenities, setValue]
   );
 
   // Handle thumbnail change
@@ -274,6 +288,8 @@ const EditRoomForm = ({ id }) => {
   const removeImagePreview = useCallback(
     (index) => {
       setImageState((prev) => {
+        detectChanges();
+
         const urlToRemove = prev.imagesPreview[index];
         if (urlToRemove && urlToRemove.startsWith("blob:")) {
           URL.revokeObjectURL(urlToRemove);
@@ -287,12 +303,30 @@ const EditRoomForm = ({ id }) => {
         };
       });
 
-      // Reset form images if no previews left
-      if (imageState.imagesPreview.length === 1) {
-        setValue("images", null);
+      // Cập nhật form images
+      const currentFiles = getValues("images");
+      if (currentFiles && currentFiles.length > 0) {
+        // Tạo array mới từ FileList hiện tại, loại bỏ file tại index
+        const filesArray = Array.from(currentFiles);
+        const newFilesArray = filesArray.filter((_, i) => i !== index);
+
+        if (newFilesArray.length === 0) {
+          // Nếu không còn file nào, set về null
+          setValue("images", null);
+        } else {
+          // Tạo FileList mới từ array
+          // Tại sao không set luôn setValue("images", newFilesArray) mà phải dùng DataTransfer để tạo FileList mới?
+          // Vì FileList là một đối tượng readonly, không thể gán trực tiếp bằng Array<File>,
+          // và các input HTML dạng <input type="file"> chỉ nhận FileList, không nhận Array<File>.
+          const dataTransfer = new DataTransfer();
+          newFilesArray.forEach((file) => {
+            dataTransfer.items.add(file);
+          });
+          setValue("images", dataTransfer.files);
+        }
       }
     },
-    [imageState.imagesPreview.length, setValue]
+    [setValue, getValues, detectChanges]
   );
 
   // Remove thumbnail preview
@@ -350,7 +384,7 @@ const EditRoomForm = ({ id }) => {
 
           try {
             const imageFiles = await Promise.all(
-              urlsData.map(({ key, url }) => urlToFile(url, key))
+              urlsData.map((url, index) => urlToFile(url, imageKeys[index]))
             );
 
             const imagesFileList = createFileList(imageFiles);
@@ -385,7 +419,16 @@ const EditRoomForm = ({ id }) => {
     // Reset to original data
     if (originalDataRef.current && room) {
       setValue("type", room.type);
+      setValue("summary", room.summary || "");
+      setValue("description", room.description || "");
+      setValue("area", room.area || "");
+      setValue("beds", room.beds || "");
       setValue("price", room.price);
+
+      // Reset amenities
+      const roomAmenities = room.amenities || [""];
+      setAmenities(roomAmenities);
+      setValue("amenities", roomAmenities);
 
       const isCustom = roomTypes && !roomTypes.includes(room.type);
       if (isCustom) {
@@ -416,8 +459,30 @@ const EditRoomForm = ({ id }) => {
         payload.type = data.type === "new" ? data.customType : data.type;
       }
 
+      if (isFieldChanged("summary")) {
+        payload.summary = data.summary;
+      }
+
+      if (isFieldChanged("description")) {
+        payload.description = data.description;
+      }
+
+      if (isFieldChanged("area")) {
+        payload.area = parseFloat(data.area);
+      }
+
+      if (isFieldChanged("beds")) {
+        payload.beds = data.beds;
+      }
+
+      if (isFieldChanged("amenities")) {
+        payload.amenities = data.amenities.filter(
+          (amenity) => amenity.trim() !== ""
+        );
+      }
+
       if (isFieldChanged("price")) {
-        payload.price = data.price;
+        payload.price = parseFloat(data.price);
       }
 
       if (isFieldChanged("thumbnail")) {
@@ -437,7 +502,16 @@ const EditRoomForm = ({ id }) => {
   useEffect(() => {
     if (room && !getRoomLoading) {
       setValue("type", room.type);
+      setValue("summary", room.summary || "");
+      setValue("description", room.description || "");
+      setValue("area", room.area || "");
+      setValue("beds", room.beds || "");
       setValue("price", room.price);
+
+      // Set amenities
+      const roomAmenities = room.amenities || [""];
+      setAmenities(roomAmenities);
+      setValue("amenities", roomAmenities);
 
       const isCustom = roomTypes && !roomTypes.includes(room.type);
       setImageState((prev) => ({ ...prev, isCustomType: isCustom }));
@@ -505,7 +579,7 @@ const EditRoomForm = ({ id }) => {
         )}
       </div>
 
-      <div className="space-y-6 p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
         {/* Room Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -545,11 +619,12 @@ const EditRoomForm = ({ id }) => {
         {/* Custom Type Input */}
         {imageState.isCustomType && (
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New room type <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              {...register("customType", {
-                required: "Please enter a new room type",
-              })}
+              {...register("customType")}
               placeholder="Enter new room type"
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.customType
@@ -566,6 +641,152 @@ const EditRoomForm = ({ id }) => {
             )}
           </div>
         )}
+
+        {/* Summary */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Summary <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("summary")}
+            placeholder="Brief summary of the room"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.summary
+                ? "border-red-500"
+                : isFieldChanged("summary")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.summary && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.summary.message}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 255 characters</p>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            {...register("description")}
+            placeholder="Detailed description of the room"
+            rows={4}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.description
+                ? "border-red-500"
+                : isFieldChanged("description")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.description && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.description.message}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 1000 characters</p>
+        </div>
+
+        {/* Area */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Area (m²) <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("area")}
+            placeholder="e.g., 25 or 25.5"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.area
+                ? "border-red-500"
+                : isFieldChanged("area")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.area && (
+            <p className="mt-1 text-sm text-red-600">{errors.area.message}</p>
+          )}
+        </div>
+
+        {/* Beds */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Bed Information <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("beds")}
+            placeholder="e.g., 1 King bed, 2 Single beds"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.beds
+                ? "border-red-500"
+                : isFieldChanged("beds")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.beds && (
+            <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Amenities */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Amenities <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-2">
+            {amenities.map((amenity, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={amenity}
+                  onChange={(e) => handleAmenityChange(index, e.target.value)}
+                  placeholder={`Amenity ${index + 1}`}
+                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.amenities && errors.amenities[index]
+                      ? "border-red-500"
+                      : isFieldChanged("amenities")
+                      ? "border-orange-300 bg-orange-50"
+                      : "border-gray-300"
+                  }`}
+                />
+                {amenities.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAmenity(index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddAmenity}
+              className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs"
+            >
+              Add Amenity
+            </button>
+          </div>
+          {errors.amenities && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.amenities.message ||
+                (errors.amenities[0] && errors.amenities[0].message)}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 100 characters per amenity
+          </p>
+        </div>
 
         {/* Thumbnail */}
         <div>
@@ -737,7 +958,7 @@ const EditRoomForm = ({ id }) => {
             Reset
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

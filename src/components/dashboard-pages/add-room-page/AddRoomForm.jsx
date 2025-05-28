@@ -5,8 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { roomSchema } from "../../../utils/room-form-schema";
 import { addRoom, getRoomTypes } from "../../../service/room-service";
-
-// Validation schema using Yup
+import { Loading } from "../../common/Loading";
 
 const AddRoomForm = () => {
   // Get room types query
@@ -30,6 +29,7 @@ const AddRoomForm = () => {
         setThumbnailPreview(null);
         setImagesPreview([]);
         setIsCustomType(false);
+        setAmenities([""]);
       } else {
         toast.error("Failed to add room", data.message);
       }
@@ -42,25 +42,33 @@ const AddRoomForm = () => {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [imagesPreview, setImagesPreview] = useState([]);
   const [isCustomType, setIsCustomType] = useState(false);
+  const [amenities, setAmenities] = useState([""]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm({
     resolver: yupResolver(roomSchema),
     defaultValues: {
       type: "",
+      customType: "",
+      summary: "",
+      description: "",
+      area: "",
+      beds: "",
+      amenities: [""],
       thumbnail: null,
       images: null,
       price: "",
     },
   });
 
-  // URL.createObjectURL(file) sẽ tạo ra một URL tạm để trình duyệt sử dụng cho việc hiển thị (preview) file ảnh.
-  // Tuy nhiên, nó chiếm bộ nhớ, và không được giải phóng tự động.
-  // Bạn nên gọi URL.revokeObjectURL() để giải phóng URL tạm mỗi khi không dùng nữa, ví dụ: khi người dùng chọn ảnh mới, hoặc khi component unmount.
+  // Watch type field để handle custom type
+  const watchType = watch("type");
 
   // Xử lý thumbnail preview
   const handleThumbnailChange = (e) => {
@@ -95,13 +103,38 @@ const AddRoomForm = () => {
     }
   };
 
+  // Xử lý amenities
+  const handleAddAmenity = () => {
+    const newAmenities = [...amenities, ""];
+    setAmenities(newAmenities);
+    setValue("amenities", newAmenities);
+  };
+
+  const handleRemoveAmenity = (index) => {
+    const newAmenities = amenities.filter((_, i) => i !== index);
+    setAmenities(newAmenities);
+    setValue("amenities", newAmenities);
+  };
+
+  const handleAmenityChange = (index, value) => {
+    const newAmenities = [...amenities];
+    newAmenities[index] = value;
+    setAmenities(newAmenities);
+    setValue("amenities", newAmenities);
+  };
+
   const onSubmit = (data) => {
     const roomType = data.type === "new" ? data.customType : data.type;
     addRoomMutation({
       type: roomType,
+      summary: data.summary,
+      description: data.description,
+      area: parseFloat(data.area),
+      beds: data.beds,
+      amenities: data.amenities.filter((amenity) => amenity.trim() !== ""), // Lọc bỏ amenities rỗng
       thumbnail: data.thumbnail[0],
       images: Array.from(data.images),
-      price: data.price,
+      price: parseFloat(data.price),
     });
   };
 
@@ -115,6 +148,11 @@ const AddRoomForm = () => {
     };
   }, []);
 
+  // Update isCustomType khi type thay đổi
+  useEffect(() => {
+    setIsCustomType(watchType === "new");
+  }, [watchType]);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 className="text-2xl font-bold mb-6">Add New Room</h2>
@@ -127,11 +165,6 @@ const AddRoomForm = () => {
           </label>
           <select
             {...register("type")}
-            onChange={(e) => {
-              const value = e.target.value;
-              setIsCustomType(value === "new");
-              register("type").onChange(e);
-            }}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.type ? "border-red-500" : "border-gray-300"
             }`}
@@ -151,13 +184,15 @@ const AddRoomForm = () => {
           )}
         </div>
 
+        {/* Custom Type Input */}
         {isCustomType && (
-          <div className="mt-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New room type <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              {...register("customType", {
-                required: "Please enter a new room type",
-              })}
+              {...register("customType")}
               placeholder="Enter new room type"
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.customType ? "border-red-500" : "border-gray-300"
@@ -170,6 +205,134 @@ const AddRoomForm = () => {
             )}
           </div>
         )}
+
+        {/* Trường Summary */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Summary <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("summary")}
+            placeholder="Brief summary of the room"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.summary ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.summary && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.summary.message}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 255 characters</p>
+        </div>
+
+        {/* Trường Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            {...register("description")}
+            placeholder="Detailed description of the room"
+            rows={4}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.description ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.description && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.description.message}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 1000 characters</p>
+        </div>
+
+        {/* Trường Area */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Area (m²) <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("area")}
+            placeholder="e.g., 25 or 25.5"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.area ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.area && (
+            <p className="mt-1 text-sm text-red-600">{errors.area.message}</p>
+          )}
+        </div>
+
+        {/* Trường Beds */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Bed Information <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("beds")}
+            placeholder="e.g., 1 King bed, 2 Single beds"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.beds ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.beds && (
+            <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Trường Amenities */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Amenities <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-2">
+            {amenities.map((amenity, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={amenity}
+                  onChange={(e) => handleAmenityChange(index, e.target.value)}
+                  placeholder={`Amenity ${index + 1}`}
+                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.amenities && errors.amenities[index]
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {amenities.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAmenity(index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddAmenity}
+              className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs"
+            >
+              Add Amenity
+            </button>
+          </div>
+          {errors.amenities && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.amenities.message ||
+                (errors.amenities[0] && errors.amenities[0].message)}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 100 characters per amenity
+          </p>
+        </div>
 
         {/* Trường Thumbnail (Single File) */}
         <div>
@@ -193,6 +356,7 @@ const AddRoomForm = () => {
               {errors.thumbnail.message}
             </p>
           )}
+          <p className="mt-1 text-xs text-gray-500">Maximum file size: 5MB</p>
 
           {/* Thumbnail Preview */}
           {thumbnailPreview && (
@@ -222,7 +386,9 @@ const AddRoomForm = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Room images <span className="text-red-500">*</span>
-            <span className="text-gray-500 text-xs ml-1">(Tối đa 5 ảnh)</span>
+            <span className="text-gray-500 text-xs ml-1">
+              (Maximum 5 images)
+            </span>
           </label>
           <input
             type="file"
@@ -240,10 +406,13 @@ const AddRoomForm = () => {
           {errors.images && (
             <p className="mt-1 text-sm text-red-600">{errors.images.message}</p>
           )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum file size per image: 5MB
+          </p>
 
           {/* Images Preview */}
           {imagesPreview.length > 0 && (
-            <div className="mt-3 flex items-center gap-3">
+            <div className="mt-3 flex flex-wrap gap-3">
               {imagesPreview.map((preview, index) => (
                 <div key={index} className="relative group">
                   <img
@@ -270,7 +439,7 @@ const AddRoomForm = () => {
           )}
         </div>
 
-        {/* Trường Price (String to BigDecimal) */}
+        {/* Trường Price */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Price <span className="text-red-500">*</span>
@@ -282,7 +451,7 @@ const AddRoomForm = () => {
             <input
               type="text"
               {...register("price")}
-              placeholder="Eg: 1500000"
+              placeholder="e.g., 1500000 or 1500000.00"
               className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.price ? "border-red-500" : "border-gray-300"
               }`}
@@ -304,33 +473,7 @@ const AddRoomForm = () => {
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {addRoomPending ? (
-              <div className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Processing...
-              </div>
-            ) : (
-              "Add Room"
-            )}
+            {addRoomPending ? <Loading /> : "Add Room"}
           </button>
         </div>
       </form>

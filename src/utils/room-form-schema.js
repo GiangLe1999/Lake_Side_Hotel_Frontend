@@ -44,6 +44,31 @@ export const roomSchema = yup.object().shape({
     is: "new",
     then: (schema) => schema.required("Please enter a new room type"),
   }),
+  summary: yup
+    .string()
+    .required("Please enter a room summary")
+    .max(255, "Summary must be at most 255 characters"),
+  description: yup.string().required("Please enter a room description"),
+  area: yup
+    .string()
+    .required("Please enter the room area")
+    .matches(/^[0-9]+(\.[0-9]{1,2})?$/, "Area must be a valid number")
+    .test("isPositive", "Area must be greater than 0", (value) => {
+      return parseFloat(value) > 0;
+    }),
+  beds: yup
+    .string()
+    .required("Please enter bed information")
+    .max(100, "Beds description must be at most 100 characters"),
+  amenities: yup
+    .array()
+    .of(
+      yup
+        .string()
+        .required("Amenity cannot be empty")
+        .max(50, "Each amenity must be at most 50 characters")
+    )
+    .min(1, "Please add at least one amenity"),
   thumbnail: yup
     .mixed()
     .test("required", "Please select a thumbnail image", (value) => {

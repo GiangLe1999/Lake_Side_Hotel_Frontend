@@ -2,14 +2,15 @@ import apiClient from "../api/api-client";
 
 export const addRoom = async (data) => {
   const formData = new FormData();
-  formData.append("type", data.type);
-  formData.append("thumbnail", data.thumbnail);
-
-  data.images.forEach((file) => {
-    formData.append("images", file);
-  });
-
-  formData.append("price", data.price);
+  for (const key in data) {
+    if (key === "images") {
+      data.images.forEach((file) => {
+        formData.append("images", file);
+      });
+    } else {
+      formData.append(key, data[key]);
+    }
+  }
 
   return apiClient.post("/rooms", formData);
 };
@@ -30,6 +31,10 @@ export const deleteRoom = async (id) => {
 
 export const getRoom = async (id) => {
   return apiClient.get(`/rooms/${id}`);
+};
+
+export const getRoomForAdmin = async (id) => {
+  return apiClient.get(`/rooms/admin/${id}`);
 };
 
 export const editRoom = async ({ id, data }) => {
