@@ -50,5 +50,5 @@ button {
 }
 
 .main-btn {
-  @apply bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl flex items-center justify-center gap-2;
+  @apply bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl transition duration-500 flex items-center justify-center gap-2;
 }

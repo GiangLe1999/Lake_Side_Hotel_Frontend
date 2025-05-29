@@ -1,5 +1,6 @@
 import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 // Header Component
 const Header = () => {
@@ -7,14 +8,14 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white shadow-lg sticky top-0 z-50">
+    <header className="bg-white shadow sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-800 to-yellow-600 bg-clip-text text-transparent">
+          <Link to="/" className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-500 bg-clip-text text-transparent">
               LuxuryStay
             </h1>
-          </div>
+          </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
             <a

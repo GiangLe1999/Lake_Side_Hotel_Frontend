@@ -42,7 +42,7 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-br from-yellow-600 via-yellow-600 to-yellow-800 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-yellow-600 via-yellow-600 to-orange-600 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>

@@ -11,8 +11,6 @@ const FeaturedRooms = () => {
     select: (res) => res.data.data.items,
   });
 
-  console.log(rooms);
-
   return (
     <section className="py-20 bg-gradient-to-br from-yellow-50 via-white to-indigo-50 relative">
       {/* Background Pattern */}

@@ -43,7 +43,7 @@ const RoomCard = ({ room }) => {
           </button>
 
           {/* Room Type Badge */}
-          <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+          <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
             Premium
           </div>
 
@@ -117,7 +117,7 @@ const RoomCard = ({ room }) => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-600 bg-clip-text text-transparent">
+                <span className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                   {formatPriceUSD(room?.price)}
                 </span>
               </div>

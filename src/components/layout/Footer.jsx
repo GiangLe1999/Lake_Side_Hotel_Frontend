@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 const Footer = () => (
-  <footer className="bg-gradient-to-br from-yellow-600 via-yellow-600 to-yellow-800 text-white">
+  <footer className="bg-gradient-to-br from-yellow-600 via-yellow-600 to-orange-600 text-white">
     <div className="container mx-auto px-4 pt-12">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
         <div>

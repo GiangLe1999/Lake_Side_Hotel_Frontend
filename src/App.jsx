@@ -8,13 +8,17 @@ import DashboardRoomsPage from "./pages/dashboard-pages/DashboardRoomsPage";
 import DashboardEditRoomPage from "./pages/dashboard-pages/DashboardEditRoomPage";
 import PublicLayout from "./components/layout/PublicLayout";
 import HomePage from "./pages/public-pages/HomePage";
+import RoomDetailPage from "./pages/public-pages/RoomDetailPage";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="room/:id" element={<RoomDetailPage />} />
         </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>
