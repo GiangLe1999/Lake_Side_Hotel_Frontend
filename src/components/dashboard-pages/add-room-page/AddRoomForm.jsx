@@ -61,6 +61,7 @@ const AddRoomForm = () => {
       area: "",
       beds: "",
       amenities: [""],
+      totalRooms: "",
       thumbnail: null,
       images: null,
       price: "",
@@ -132,6 +133,7 @@ const AddRoomForm = () => {
       area: parseFloat(data.area),
       beds: data.beds,
       amenities: data.amenities.filter((amenity) => amenity.trim() !== ""), // Lọc bỏ amenities rỗng
+      totalRooms: parseInt(data.totalRooms),
       thumbnail: data.thumbnail[0],
       images: Array.from(data.images),
       price: parseFloat(data.price),
@@ -283,6 +285,26 @@ const AddRoomForm = () => {
             <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
           )}
           <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Trường Total Rooms */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Total Rooms <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("totalRooms")}
+            placeholder="e.g., 1 or 10"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.totalRooms ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.totalRooms && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.totalRooms.message}
+            </p>
+          )}
         </div>
 
         {/* Trường Amenities */}

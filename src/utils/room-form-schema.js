@@ -69,6 +69,14 @@ export const roomSchema = yup.object().shape({
         .max(50, "Each amenity must be at most 50 characters")
     )
     .min(1, "Please add at least one amenity"),
+  totalRooms: yup
+    .string()
+    .required("Please enter the total rooms")
+    .matches(/^\d+$/, "Total rooms must be a valid number")
+    .test("isPositive", "Total rooms must be at least 1", (value) => {
+      if (!value) return true; // Không nhập thì hợp lệ
+      return parseInt(value, 10) >= 1;
+    }),
   thumbnail: yup
     .mixed()
     .test("required", "Please select a thumbnail image", (value) => {

@@ -68,6 +68,7 @@ const RoomsTable = () => {
               <th className="pb-5">Room ID</th>
               <th className="pb-5">Room Type</th>
               <th className="pb-5">Room Price</th>
+              <th className="pb-5">Total Rooms</th>
               <th className="pb-5">Created At</th>
               <th className="pb-5 text-center">Actions</th>
             </tr>
@@ -87,6 +88,9 @@ const RoomsTable = () => {
                     </td>
                     <td className="py-3">
                       <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                    </td>
+                    <td className="py-3">
+                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
                     </td>
                     <td className="py-3">
                       <div className="h-4 w-16 bg-gray-200 rounded"></div>

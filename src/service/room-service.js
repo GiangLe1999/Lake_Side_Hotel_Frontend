@@ -29,10 +29,6 @@ export const deleteRoom = async (id) => {
   return apiClient.delete(`/rooms/${id}`);
 };
 
-export const getRoom = async (id) => {
-  return apiClient.get(`/rooms/${id}`);
-};
-
 export const getRoomForAdmin = async (id) => {
   return apiClient.get(`/rooms/admin/${id}`);
 };
@@ -50,4 +46,13 @@ export const editRoom = async ({ id, data }) => {
   }
 
   return apiClient.put(`/rooms/${id}`, formData);
+};
+
+// For client APIs
+export const getRoom = async (id) => {
+  return apiClient.get(`/rooms/${id}`);
+};
+
+export const getRooms = async ({ pageNo = 0, pageSize = 9 }) => {
+  return apiClient.get(`/rooms?pageNo=${pageNo}&pageSize=${pageSize}`);
 };

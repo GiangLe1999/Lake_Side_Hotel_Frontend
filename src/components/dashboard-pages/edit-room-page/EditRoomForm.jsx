@@ -95,6 +95,7 @@ const EditRoomForm = ({ id }) => {
       area: "",
       beds: "",
       amenities: [""],
+      totalRooms: "",
       thumbnail: null,
       images: null,
       price: "",
@@ -145,9 +146,6 @@ const EditRoomForm = ({ id }) => {
     const originalData = originalDataRef.current;
     const newChangedFields = new Set();
 
-    console.log(currentData.images);
-    console.log(originalData.images);
-
     // Compare basic fields
     if (currentData.type !== originalData.type) {
       newChangedFields.add("type");
@@ -167,6 +165,10 @@ const EditRoomForm = ({ id }) => {
 
     if (currentData.beds !== originalData.beds) {
       newChangedFields.add("beds");
+    }
+
+    if (currentData.totalRooms !== originalData.totalRooms) {
+      newChangedFields.add("totalRooms");
     }
 
     if (!compareSimpleArrays(currentData.amenities, originalData.amenities)) {
@@ -202,6 +204,7 @@ const EditRoomForm = ({ id }) => {
     watchedValues.area,
     watchedValues.beds,
     watchedValues.amenities,
+    watchedValues.totalRooms,
     watchedValues.price,
     watchedValues.thumbnail,
     watchedValues.images,
@@ -423,6 +426,7 @@ const EditRoomForm = ({ id }) => {
       setValue("description", room.description || "");
       setValue("area", room.area || "");
       setValue("beds", room.beds || "");
+      setValue("totalRooms", room.totalRooms || "");
       setValue("price", room.price);
 
       // Reset amenities
@@ -475,6 +479,10 @@ const EditRoomForm = ({ id }) => {
         payload.beds = data.beds;
       }
 
+      if (isFieldChanged("totalRooms")) {
+        payload.totalRooms = parseInt(data.totalRooms);
+      }
+
       if (isFieldChanged("amenities")) {
         payload.amenities = data.amenities.filter(
           (amenity) => amenity.trim() !== ""
@@ -506,6 +514,7 @@ const EditRoomForm = ({ id }) => {
       setValue("description", room.description || "");
       setValue("area", room.area || "");
       setValue("beds", room.beds || "");
+      setValue("totalRooms", room.totalRooms || "");
       setValue("price", room.price);
 
       // Set amenities
@@ -735,6 +744,30 @@ const EditRoomForm = ({ id }) => {
             <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
           )}
           <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Total Rooms */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Total Rooms <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("totalRooms")}
+            placeholder="e.g., 1 or 10"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.totalRooms
+                ? "border-red-500"
+                : isFieldChanged("totalRooms")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.totalRooms && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.totalRooms.message}
+            </p>
+          )}
         </div>
 
         {/* Amenities */}
