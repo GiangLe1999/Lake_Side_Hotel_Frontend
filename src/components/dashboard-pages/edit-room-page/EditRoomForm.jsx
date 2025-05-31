@@ -30,7 +30,7 @@ const EditRoomForm = ({ id }) => {
   });
 
   const { data: room, isLoading: getRoomLoading } = useQuery({
-    queryKey: ["room", id],
+    queryKey: ["room-for-admin", id],
     queryFn: () => getRoomForAdmin(id),
     select: (res) => res.data.data,
   });
