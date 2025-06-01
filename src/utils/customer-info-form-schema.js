@@ -23,6 +23,10 @@ export const customerInfoFormSchema = yup.object().shape({
     ),
   confirmationCode: yup
     .string()
+    .trim()
     .required("Confirmation code is required")
-    .matches(/^\d{6}$/, "Confirmation code must be exactly 6 digits"),
+    .matches(
+      /^[A-Za-z0-9 ]{6}$/,
+      "Confirmation code must be exactly 6 characters without special symbols"
+    ),
 });

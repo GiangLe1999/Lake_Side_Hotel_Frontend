@@ -8,9 +8,9 @@ import {
   Users,
   AlertCircle,
 } from "lucide-react";
-import CustomerInfo from "./CustomerInfo";
 import formatPriceUSD from "../../../utils/format-price";
 import priceInfoConstants from "../../../constants/price-info";
+import CustomerInfo from "./CustomerInfo";
 
 // Mock format price function
 const BookingCard = ({ roomData }) => {
@@ -89,12 +89,6 @@ const BookingCard = ({ roomData }) => {
     setCheckOut(newCheckOut);
   };
 
-  // Handle payment
-  const handlePayment = (paymentData) => {
-    console.log("Processing payment with PayOS:", paymentData);
-    alert("Redirecting to PayOS payment gateway...");
-  };
-
   // Calculate pricing
   const roomTotal = roomData?.price * numberOfNights;
   const serviceFee = priceInfoConstants.serviceFee;
@@ -119,7 +113,6 @@ const BookingCard = ({ roomData }) => {
         roomId={roomData.id}
         onBack={() => setShowForm(false)}
         bookingData={bookingData}
-        onPayment={handlePayment}
       />
     );
   }
