@@ -9,10 +9,12 @@ import { Loading } from "../../../common/Loading";
 import BookingSummary from "./BookingSumary";
 import FormInput from "./FormInput";
 import ConfirmationCodeSection from "./ConfirmationCodeSection";
+import ChoosePayment from "../ChoosePayment";
 
 const CustomerInfo = ({ roomId, onBack, bookingData }) => {
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [bookingId, setBookingId] = useState(null);
+  const [showPaymentSelection, setShowPaymentSelection] = useState(false);
   const [codeTimer, startTimer] = useCountdownTimer();
 
   // Initialize React Hook Form
@@ -38,12 +40,20 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
   } = form;
   const watchedEmail = watch("email");
 
-  // Custom hooks
+  // Custom hooks with success callback
   const {
     addBookingMutation,
     resendConfirmationCodeMutation,
     confirmBookingMutation,
-  } = useBookingMutations(setBookingId, setIsCodeSent, startTimer);
+  } = useBookingMutations(
+    setBookingId,
+    setIsCodeSent,
+    startTimer,
+    // Success callback for confirmation
+    () => {
+      setShowPaymentSelection(true);
+    }
+  );
 
   // Memoized values
   const isFormReady = useMemo(
@@ -104,16 +114,31 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
         bookingId,
         confirmationCode: data.confirmationCode,
       });
+
+      setShowPaymentSelection(true);
     },
     [isCodeSent, bookingId, confirmBookingMutation]
   );
+
+  const handleBackToBooking = useCallback(() => {
+    if (showPaymentSelection) {
+      setShowPaymentSelection(false);
+    } else {
+      onBack();
+    }
+  }, [showPaymentSelection, onBack]);
+
+  // Render ChoosePayment component if payment selection is active
+  if (showPaymentSelection) {
+    return <ChoosePayment bookingId={bookingId} bookingData={bookingData} />;
+  }
 
   return (
     <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={onBack}
+          onClick={handleBackToBooking}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Go back"
         >

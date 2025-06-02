@@ -13,3 +13,9 @@ export const confirmBooking = async ({ bookingId, confirmationCode }) => {
     `/bookings/confirm/${bookingId}?confirmationCode=${confirmationCode}`
   );
 };
+
+export const changePaymentMethod = async ({ bookingId, paymentMethod }) => {
+  return apiClient.put(
+    `/bookings/choose-payment-method/${bookingId}?paymentMethod=${paymentMethod}`
+  );
+};

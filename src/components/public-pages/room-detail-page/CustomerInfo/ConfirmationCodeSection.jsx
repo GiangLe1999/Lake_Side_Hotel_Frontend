@@ -57,7 +57,7 @@ const ConfirmationCodeSection = ({
             className={`px-4 py-3 rounded-xl font-medium text-sm transition ${
               isButtonDisabled
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "text-white bg-blue-600 hover:bg-blue-700"
+                : "text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 duration-500"
             }`}
           >
             {getButtonText()}

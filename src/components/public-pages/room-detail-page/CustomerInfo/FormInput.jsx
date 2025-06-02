@@ -4,6 +4,7 @@ const FormInput = ({
   label,
   type = "text",
   placeholder,
+  // eslint-disable-next-line no-unused-vars
   Icon,
   error,
   ...props

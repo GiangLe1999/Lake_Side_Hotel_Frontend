@@ -20,11 +20,11 @@ const BookingSumary = ({ bookingData }) => {
       <div className="text-sm text-gray-600 mb-2">
         {formattedCheckIn} - {formattedCheckOut}
       </div>
-      <div className="text-sm text-gray-600 mb-2">
-        {bookingData.numberOfNights} {nightText} • {bookingData.guests}{" "}
+      <div className="text-sm text-gray-600 mb-4">
+        {bookingData.numberOfNights} {nightText} for {bookingData.guests}{" "}
         {guestText}
       </div>
-      <div className="text-lg font-bold text-gray-800">
+      <div className="font-bold text-gray-800 pt-4 border-t border-gray-200">
         Total: {formatPriceUSD(bookingData.totalAmount)}
       </div>
     </div>
