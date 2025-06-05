@@ -8,7 +8,12 @@ import {
 import { toast } from "react-toastify";
 import paymentTypes from "../constants/payment-type";
 
-const useBookingMutations = (setBookingId, setIsCodeSent, startTimer) => {
+const useBookingMutations = (
+  setBookingId,
+  setIsCodeSent,
+  startTimer,
+  handleShowPayment
+) => {
   const addBookingMutation = useMutation({
     mutationFn: addBooking,
     onSuccess: ({ data }) => {
@@ -57,6 +62,8 @@ const useBookingMutations = (setBookingId, setIsCodeSent, startTimer) => {
           ? "Booking successfully. Now please choose your payment method."
           : "Failed to confirm booking"
       );
+
+      handleShowPayment();
     },
     onError: (err) => {
       toast.error(`Failed to confirm booking. ${err.message}`);

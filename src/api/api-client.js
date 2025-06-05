@@ -2,11 +2,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 const apiUrl = import.meta.env.VITE_API_URL;
 
-console.log(apiUrl);
-
 // Tạo instance với cấu hình mặc định
 const apiClient = axios.create({
-  baseURL: apiUrl || "/api",
+  baseURL: apiUrl || "",
   timeout: 30000, // Đặt timeout phù hợp với API có upload file
   headers: {
     Accept: "application/json",

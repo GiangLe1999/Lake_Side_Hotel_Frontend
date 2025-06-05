@@ -10,6 +10,7 @@ import PublicLayout from "./components/layout/PublicLayout";
 import HomePage from "./pages/public-pages/HomePage";
 import RoomDetailPage from "./pages/public-pages/RoomDetailPage";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import AuthPage from "./pages/public-pages/AuthPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<HomePage />} />
           <Route path="room/:id" element={<RoomDetailPage />} />
+          <Route path="/login" element={<AuthPage />} />
         </Route>
 
         <Route path="/dashboard" element={<DashboardLayout />}>

@@ -16,12 +16,12 @@ export const addRoom = async (data) => {
 };
 
 export const getRoomTypes = async () => {
-  return apiClient.get("/rooms/types");
+  return apiClient.get("/rooms/public/types");
 };
 
 export const getRoomFilteredByType = async (data) => {
   return apiClient.get(
-    `/rooms/filtered-by-type?pageNo=${data.pageNo}&pageSize=${data.pageSize}&roomType=${data.type}`
+    `/rooms/public/filtered-by-type?pageNo=${data.pageNo}&pageSize=${data.pageSize}&roomType=${data.type}`
   );
 };
 
@@ -30,7 +30,7 @@ export const deleteRoom = async (id) => {
 };
 
 export const getRoomForAdmin = async (id) => {
-  return apiClient.get(`/rooms/admin/${id}`);
+  return apiClient.get(`/rooms/${id}`);
 };
 
 export const editRoom = async ({ id, data }) => {
@@ -50,9 +50,9 @@ export const editRoom = async ({ id, data }) => {
 
 // For client APIs
 export const getRoom = async (id) => {
-  return apiClient.get(`/rooms/${id}`);
+  return apiClient.get(`/rooms/public/${id}`);
 };
 
 export const getRooms = async ({ pageNo = 0, pageSize = 9 }) => {
-  return apiClient.get(`/rooms?pageNo=${pageNo}&pageSize=${pageSize}`);
+  return apiClient.get(`/rooms/public?pageNo=${pageNo}&pageSize=${pageSize}`);
 };

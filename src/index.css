@@ -17,3 +17,22 @@ button {
 .main-btn {
   @apply bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl transition duration-500 flex items-center justify-center gap-2;
 }
+
+.heading-2 {
+  font-family: "Tangerine", cursive;
+  font-weight: 700;
+  font-style: normal;
+  @apply text-6xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent pb-6;
+}
+
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-inner-spin-button,
+input::-webkit-contacts-auto-fill-button {
+  display: none !important;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}

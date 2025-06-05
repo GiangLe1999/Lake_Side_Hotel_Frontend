@@ -48,14 +48,12 @@ const DiningSection = () => {
     <section className="py-24 bg-white relative">
       <div className="container mx-auto px-4">
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-500 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Utensils className="w-4 h-4" />
             Culinary Excellence
           </div>
 
-          <h2 className="text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent pb-6">
-            Award-Winning
-          </h2>
+          <h2 className="heading-2">Award-Winning</h2>
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Embark on an extraordinary culinary journey crafted by

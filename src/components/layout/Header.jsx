@@ -79,9 +79,12 @@ const Header = () => {
             <button className="text-gray-600 hover:text-yellow-600 transition-colors">
               <Search size={20} />
             </button>
-            <button className="px-4 py-2 main-btn font-semibold text-sm">
-              Đăng nhập
-            </button>
+            <Link
+              to="/login"
+              className="px-4 py-2 main-btn font-semibold text-sm"
+            >
+              Login
+            </Link>
           </div>
 
           <button
@@ -146,9 +149,12 @@ const Header = () => {
               >
                 Liên hệ
               </a>
-              <button className="w-full text-left px-3 py-2 bg-yellow-600 text-white rounded-lg mt-2">
-                Đăng nhập
-              </button>
+              <Link
+                to="/login"
+                className="w-full text-left px-3 py-2 bg-yellow-600 text-white rounded-lg mt-2"
+              >
+                Login
+              </Link>
             </div>
           </div>
         )}

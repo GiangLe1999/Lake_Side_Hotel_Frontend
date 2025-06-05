@@ -81,10 +81,11 @@ const RoomInfo = () => {
   return (
     <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            Premium
-          </div>
+        <h1 className="text-6xl font-bold text-gray-800 mt-2 mb-4 tangerine-bold">
+          {roomData.type}
+        </h1>
+
+        <div className="flex items-center justify-between mb-7">
           <div className="flex items-center gap-1">
             <Star className="w-5 h-5 text-yellow-400 fill-current" />
             <span className="font-bold text-gray-800">{roomData.rating}</span>
@@ -93,9 +94,7 @@ const RoomInfo = () => {
             </span>
           </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          {roomData.type}
-        </h1>
+
         <p className="text-gray-600 text-lg leading-relaxed">
           {roomData.description}
         </p>

@@ -42,11 +42,6 @@ const RoomCard = ({ room }) => {
             />
           </button>
 
-          {/* Room Type Badge */}
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            Premium
-          </div>
-
           {/* Rating Badge */}
           <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-400 fill-current" />

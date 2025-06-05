@@ -114,8 +114,6 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
         bookingId,
         confirmationCode: data.confirmationCode,
       });
-
-      setShowPaymentSelection(true);
     },
     [isCodeSent, bookingId, confirmBookingMutation]
   );
