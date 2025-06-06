@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -12,27 +13,76 @@ import {
   Shield,
 } from "lucide-react";
 import { loginSchema, registerSchema } from "../../utils/auth-form-schema";
-import { userRegister } from "../../service/auth-service";
+import {
+  userRegister,
+  userLogin,
+  saveTokens,
+} from "../../service/auth-service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useAuth } from "../../hooks/useAuth";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
+  const navigate = useNavigate();
+  // Login là hàm dispatch sau khi login success
+  const { login, isAuthenticated } = useAuth();
+
+  // Register mutation
   const { mutate: registerMutation, isPending: registerPending } = useMutation({
     mutationFn: userRegister,
-    onSuccess: ({ data }) => {
-      if (data.status === 200) {
-        toast.success("Register successfully");
+    onSuccess: (res) => {
+      const response = res.data?.data;
+
+      if (response.status === 201 || response.accessToken) {
+        // Lưu tokens
+        saveTokens(response.accessToken, response.refreshToken, rememberMe);
+
+        // Cập nhật context
+        login(response.userInfo);
+        localStorage.setItem("rememberMe", rememberMe.toString());
+
+        toast.success("Register successfully!");
+
+        navigate("/");
       } else {
-        toast.error("Failed to register", data.message);
+        toast.error(response.message || "Register failed");
       }
     },
-    onError: (err) => {
-      toast.error("Failed to register," + err.message);
+    onError: (error) => {
+      toast.error("Register failed: " + error.message);
     },
+  });
+
+  // Login mutation
+  const { mutate: loginMutation, isPending: loginPending } = useMutation({
+    mutationFn: userLogin,
+    onSuccess: (res) => {
+      const response = res.data?.data;
+
+      if (response.status === 200 || response.accessToken) {
+        // Lưu tokens
+        saveTokens(response.accessToken, response.refreshToken, rememberMe);
+
+        // Cập nhật context
+        login(response.userInfo);
+        localStorage.setItem("rememberMe", rememberMe.toString());
+
+        toast.success("Login successfully!");
+
+        navigate("/");
+      } else {
+        toast.error(response.message || "Login failed");
+      }
+    },
+    onError: (error) => {
+      toast.error("Login failed: " + error.message);
+    },
+    select: (res) => res.data.data,
   });
 
   const {
@@ -53,12 +103,24 @@ const AuthPage = () => {
   };
 
   const onSubmit = async (data) => {
-    isLogin ? () => {} : registerMutation(data);
+    if (isLogin) {
+      loginMutation(data);
+    } else {
+      registerMutation(data);
+    }
   };
 
   const handleGoogleLogin = () => {
+    // Lưu rememberMe option để xử lý sau khi redirect về từ Google
+    localStorage.setItem("rememberMe", rememberMe.toString());
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
+
+  const isPending = isLogin ? loginPending : registerPending;
+
+  if (isAuthenticated) {
+    navigate("/");
+  }
 
   return (
     <div className="bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
@@ -83,7 +145,7 @@ const AuthPage = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/5 to-blue-300/5 rounded-3xl"></div>
 
               <div className="relative z-10">
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {!isLogin && (
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -216,24 +278,40 @@ const AuthPage = () => {
                     </div>
                   )}
 
-                  {isLogin && (
-                    <div className="text-right">
+                  {/* Remember Me Checkbox */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="rememberMe"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="rememberMe"
+                        className="ml-2 text-sm text-gray-700"
+                      >
+                        Remember me
+                      </label>
+                    </div>
+
+                    {isLogin && (
                       <button
                         type="button"
                         className="text-yellow-600 hover:text-yellow-700 text-sm font-medium transition-colors"
                       >
                         Forgot password?
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <button
-                    type="button"
-                    onClick={handleSubmit(onSubmit)}
-                    disabled={isLogin ? false : registerPending}
-                    className="main-btn w-full p-4 text-lg font-bold"
+                    type="submit"
+                    disabled={isPending}
+                    className="main-btn w-full p-4 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {(isLogin ? false : registerPending) ? (
+                    {isPending ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         {isLogin ? "Logging in..." : "Creating account..."}
@@ -245,27 +323,27 @@ const AuthPage = () => {
                       </>
                     )}
                   </button>
+                </form>
 
-                  <div className="relative my-8">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-white text-gray-500 font-medium">
-                        Or
-                      </span>
-                    </div>
+                <div className="relative my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    className="w-full bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-2xl transition transform duration-500 hover:shadow-lg flex items-center justify-center gap-3"
-                  >
-                    <Chrome className="w-5 h-5 text-blue-500" />
-                    {isLogin ? "Login with Google" : "Register with Google"}
-                  </button>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-gray-500 font-medium">
+                      Or
+                    </span>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-2xl transition transform duration-500 hover:shadow-lg flex items-center justify-center gap-3"
+                >
+                  <Chrome className="w-5 h-5 text-blue-500" />
+                  {isLogin ? "Login with Google" : "Register with Google"}
+                </button>
 
                 <div className="mt-8 text-center">
                   <p className="text-gray-600">

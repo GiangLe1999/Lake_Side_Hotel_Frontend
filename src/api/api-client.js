@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "react-toastify";
+import { clearTokens, getAuthToken, saveTokens } from "../service/auth-service";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // Tạo instance với cấu hình mặc định
@@ -11,20 +11,14 @@ const apiClient = axios.create({
   },
 });
 
-// Lấy token từ storage
-const getAuthToken = () => {
-  return (
-    localStorage.getItem("access_token") ||
-    sessionStorage.getItem("access_token")
-  );
-};
-
 // Refresh token khi cần
 const refreshAuthToken = async () => {
   try {
     const refreshToken =
       localStorage.getItem("refresh_token") ||
       sessionStorage.getItem("refresh_token");
+
+    const rememberMe = localStorage.getItem("rememberMe") || "";
 
     if (!refreshToken) {
       throw new Error("No refresh token available");
@@ -40,21 +34,12 @@ const refreshAuthToken = async () => {
     const { accessToken, refreshToken: newRefreshToken } = response.data;
 
     // Lưu vào cùng storage với token cũ
-    if (localStorage.getItem("access_token")) {
-      localStorage.setItem("access_token", accessToken);
-      localStorage.setItem("refresh_token", newRefreshToken);
-    } else {
-      sessionStorage.setItem("access_token", accessToken);
-      sessionStorage.setItem("refresh_token", newRefreshToken);
-    }
+    saveTokens(accessToken, newRefreshToken, rememberMe === "true");
 
     return accessToken;
   } catch (error) {
     // Đăng xuất nếu không thể refresh token
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
+    clearTokens();
 
     // Chuyển về trang đăng nhập
     window.location.href = "/login";
@@ -90,7 +75,7 @@ apiClient.interceptors.request.use(
   // Sửa config trước khi request được gửi.
   (config) => {
     // Không thêm token cho request refresh token
-    if (config.url?.includes("auth/refresh-token")) {
+    if (config.url?.includes("auth/refresh")) {
       return config;
     }
 
@@ -168,60 +153,60 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Xử lý các lỗi HTTP khác
-    let errorMessage = "Something went wrong";
+    // // Xử lý các lỗi HTTP khác
+    // let errorMessage = "Something went wrong";
 
-    if (error.response) {
-      // Lỗi từ server với response
-      const { status, data } = error.response;
+    // if (error.response) {
+    //   // Lỗi từ server với response
+    //   const { status, data } = error.response;
 
-      // Chuẩn hóa message
-      if (data.message) {
-        errorMessage = data.message;
-      } else if (data.errors && Array.isArray(data.errors)) {
-        errorMessage = data.errors.map((e) => e.message || e).join(", ");
-      } else if (typeof data === "string") {
-        errorMessage = data;
-      } else {
-        errorMessage = `Error: ${status}`;
-      }
+    //   // Chuẩn hóa message
+    //   if (data.message) {
+    //     errorMessage = data.message;
+    //   } else if (data.errors && Array.isArray(data.errors)) {
+    //     errorMessage = data.errors.map((e) => e.message || e).join(", ");
+    //   } else if (typeof data === "string") {
+    //     errorMessage = data;
+    //   } else {
+    //     errorMessage = `Error: ${status}`;
+    //   }
 
-      // Xử lý các mã lỗi phổ biến
-      switch (status) {
-        case 400:
-          // Bad Request - thường là lỗi validation
-          break;
-        case 403:
-          // Forbidden - không có quyền truy cập
-          toast?.error("You do not have permission to perform this action");
-          break;
-        case 404:
-          // Not Found
-          break;
-        case 500:
-          // Server Error
-          toast?.error("Server error. Please try again later");
-          break;
-        default:
-          // Các lỗi khác
-          break;
-      }
-    } else if (error.request) {
-      // Request đã gửi nhưng không nhận được response
-      errorMessage = "No response from server. Please check your connection";
-      toast?.error(errorMessage);
-    } else {
-      // Lỗi khi setting up request
-      errorMessage = error.message;
-    }
+    //   // Xử lý các mã lỗi phổ biến
+    //   switch (status) {
+    //     case 400:
+    //       // Bad Request - thường là lỗi validation
+    //       break;
+    //     case 403:
+    //       // Forbidden - không có quyền truy cập
+    //       toast?.error("You do not have permission to perform this action");
+    //       break;
+    //     case 404:
+    //       // Not Found
+    //       break;
+    //     case 500:
+    //       // Server Error
+    //       toast?.error("Server error. Please try again later");
+    //       break;
+    //     default:
+    //       // Các lỗi khác
+    //       break;
+    //   }
+    // } else if (error.request) {
+    //   // Request đã gửi nhưng không nhận được response
+    //   errorMessage = "No response from server. Please check your connection";
+    //   toast?.error(errorMessage);
+    // } else {
+    //   // Lỗi khi setting up request
+    //   errorMessage = error.message;
+    // }
 
-    // Trả về lỗi đã được chuẩn hóa để dễ xử lý ở frontend
-    return Promise.reject({
-      originalError: error,
-      message: errorMessage,
-      status: error.response?.status || 0,
-      data: error.response?.data,
-    });
+    // // Trả về lỗi đã được chuẩn hóa để dễ xử lý ở frontend
+    // return Promise.reject({
+    //   originalError: error,
+    //   message: errorMessage,
+    //   status: error.response?.status || 0,
+    //   data: error.response?.data,
+    // });
   }
 );
 

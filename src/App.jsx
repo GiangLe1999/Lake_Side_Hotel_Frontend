@@ -11,6 +11,7 @@ import HomePage from "./pages/public-pages/HomePage";
 import RoomDetailPage from "./pages/public-pages/RoomDetailPage";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import AuthPage from "./pages/public-pages/AuthPage";
+import ProtectedRoute from "./components/wrapper/ProtectedRoute";
 
 function App() {
   return (
@@ -23,12 +24,22 @@ function App() {
           <Route path="/login" element={<AuthPage />} />
         </Route>
 
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashboardStatsPage />} />
           <Route path="rooms" element={<DashboardRoomsPage />} />
           <Route path="rooms/:id" element={<DashboardEditRoomPage />} />
           <Route path="add-room" element={<DashboardAddRoomPage />} />
         </Route>
+
+        {/* 404 page */}
+        <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
     </Router>
   );
