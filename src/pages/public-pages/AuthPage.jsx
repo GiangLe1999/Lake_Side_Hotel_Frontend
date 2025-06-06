@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,9 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(
+    localStorage.getItem("rememberMe") === "true" || false
+  );
 
   const navigate = useNavigate();
   // Login là hàm dispatch sau khi login success
@@ -36,21 +38,19 @@ const AuthPage = () => {
   const { mutate: registerMutation, isPending: registerPending } = useMutation({
     mutationFn: userRegister,
     onSuccess: (res) => {
-      const response = res.data?.data;
-
-      if (response.status === 201 || response.accessToken) {
+      if (res?.status === 201) {
         // Lưu tokens
-        saveTokens(response.accessToken, response.refreshToken, rememberMe);
+        saveTokens(res.accessToken, res.refreshToken, rememberMe);
 
         // Cập nhật context
-        login(response.userInfo);
+        login(res.userInfo);
         localStorage.setItem("rememberMe", rememberMe.toString());
 
         toast.success("Register successfully!");
 
         navigate("/");
       } else {
-        toast.error(response.message || "Register failed");
+        toast.error(res.message || "Register failed");
       }
     },
     onError: (error) => {
@@ -62,27 +62,24 @@ const AuthPage = () => {
   const { mutate: loginMutation, isPending: loginPending } = useMutation({
     mutationFn: userLogin,
     onSuccess: (res) => {
-      const response = res.data?.data;
-
-      if (response.status === 200 || response.accessToken) {
+      if (res?.status === 200) {
         // Lưu tokens
-        saveTokens(response.accessToken, response.refreshToken, rememberMe);
+        saveTokens(res?.data.accessToken, res?.data.refreshToken, rememberMe);
 
         // Cập nhật context
-        login(response.userInfo);
+        login(res?.user);
         localStorage.setItem("rememberMe", rememberMe.toString());
 
         toast.success("Login successfully!");
 
         navigate("/");
       } else {
-        toast.error(response.message || "Login failed");
+        toast.error(res?.message || "Login failed");
       }
     },
     onError: (error) => {
       toast.error("Login failed: " + error.message);
     },
-    select: (res) => res.data.data,
   });
 
   const {
@@ -118,9 +115,11 @@ const AuthPage = () => {
 
   const isPending = isLogin ? loginPending : registerPending;
 
-  if (isAuthenticated) {
-    navigate("/");
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">

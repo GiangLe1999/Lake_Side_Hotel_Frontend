@@ -1,7 +1,7 @@
 import apiClient from "../api/api-client";
 
 export const addBooking = async (data) => {
-  return apiClient.post("/bookings/public/", data);
+  return apiClient.post("/bookings/public", data);
 };
 
 export const resendConfirmationCode = async ({ bookingId, data }) => {

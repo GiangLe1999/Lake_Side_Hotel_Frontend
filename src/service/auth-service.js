@@ -2,26 +2,31 @@ import apiClient from "../api/api-client";
 
 // API đăng ký
 export const userRegister = async (data) => {
-  return apiClient.post("/auth/register", data);
+  const response = await apiClient.post("/auth/register", data);
+  return response.data;
 };
 
 // API đăng nhập
-export const userLogin = async (loginData) => {
-  const response = await apiClient.post("/auth/login", loginData);
+export const userLogin = async (data) => {
+  const response = await apiClient.post("/auth/login", data);
   return response.data;
 };
 
 // API đăng xuất
 export const userLogout = async () => {
-  await apiClient.post("/auth/logout");
+  const refreshToken =
+    localStorage.getItem("refresh_token") ||
+    sessionStorage.getItem("refresh_token");
+
+  const response = await apiClient.post("/auth/logout", { refreshToken });
+  return response.data;
 };
 
 // API lấy thông tin profile hiện tại
 export const getCurrentProfile = async () => {
   // eslint-disable-next-line no-useless-catch
   try {
-    const response = await apiClient.get("/auth/profile");
-    return response.data;
+    return apiClient.get("/auth/profile");
   } catch (error) {
     throw error;
   }

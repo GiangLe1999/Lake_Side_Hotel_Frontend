@@ -10,6 +10,7 @@ import {
 import BookingSummary from "./CustomerInfo/BookingSumary";
 import paymentTypes from "../../../constants/payment-type";
 import useBookingMutations from "../../../hooks/useBookingMutations";
+import { Loading } from "../../common/Loading";
 
 const ChoosePayment = ({ bookingId, bookingData }) => {
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -136,8 +137,7 @@ const ChoosePayment = ({ bookingId, bookingData }) => {
                   >
                     {isCurrentlyProcessing ? (
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Processing...
+                        <Loading />
                       </div>
                     ) : (
                       option.buttonText

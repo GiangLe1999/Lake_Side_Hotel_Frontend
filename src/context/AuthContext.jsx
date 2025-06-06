@@ -86,7 +86,8 @@ export const AuthProvider = ({ children }) => {
 
         if (isAuthenticated()) {
           // Nếu có token, lấy thông tin user
-          const userProfile = await getCurrentProfile();
+          const userProfile = (await getCurrentProfile())?.data.data;
+
           dispatch({
             type: AUTH_ACTIONS.SET_USER,
             payload: userProfile,
