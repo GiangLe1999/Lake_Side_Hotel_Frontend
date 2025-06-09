@@ -58,7 +58,7 @@ const ChoosePayment = ({ bookingId, bookingData }) => {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-24">
+    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-[163px]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <h3 className="text-xl font-bold text-gray-800">

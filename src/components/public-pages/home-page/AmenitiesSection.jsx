@@ -72,13 +72,7 @@ const amenities = [
 // Enhanced Amenities Section
 const AmenitiesSection = () => {
   return (
-    <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl"></div>
-      </div>
-
+    <section className="py-24 relative overflow-hidden border-t border-gray-100">
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-20">
           <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-600 px-4 py-2 rounded-full text-sm font-medium mb-6">

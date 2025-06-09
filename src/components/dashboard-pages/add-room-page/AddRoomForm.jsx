@@ -30,6 +30,7 @@ const AddRoomForm = () => {
         setImagesPreview([]);
         setIsCustomType(false);
         setAmenities([""]);
+        setFeatures([""]);
       } else {
         toast.error("Failed to add room", data.message);
       }
@@ -43,6 +44,7 @@ const AddRoomForm = () => {
   const [imagesPreview, setImagesPreview] = useState([]);
   const [isCustomType, setIsCustomType] = useState(false);
   const [amenities, setAmenities] = useState([""]);
+  const [features, setFeatures] = useState([""]);
 
   const {
     register,
@@ -61,6 +63,7 @@ const AddRoomForm = () => {
       area: "",
       beds: "",
       amenities: [""],
+      features: [""],
       totalRooms: "",
       thumbnail: null,
       images: null,
@@ -104,11 +107,16 @@ const AddRoomForm = () => {
     }
   };
 
-  // Xử lý amenities
   const handleAddAmenity = () => {
     const newAmenities = [...amenities, ""];
     setAmenities(newAmenities);
     setValue("amenities", newAmenities);
+  };
+
+  const handleAddFeature = () => {
+    const newFeatures = [...features, ""];
+    setFeatures(newFeatures);
+    setValue("features", newFeatures);
   };
 
   const handleRemoveAmenity = (index) => {
@@ -117,11 +125,24 @@ const AddRoomForm = () => {
     setValue("amenities", newAmenities);
   };
 
+  const handleRemoveFeature = (index) => {
+    const newFeatures = features.filter((_, i) => i !== index);
+    setFeatures(newFeatures);
+    setValue("features", newFeatures);
+  };
+
   const handleAmenityChange = (index, value) => {
     const newAmenities = [...amenities];
     newAmenities[index] = value;
     setAmenities(newAmenities);
     setValue("amenities", newAmenities);
+  };
+
+  const handleFeatureChange = (index, value) => {
+    const newFeatures = [...features];
+    newFeatures[index] = value;
+    setFeatures(newFeatures);
+    setValue("features", newFeatures);
   };
 
   const onSubmit = (data) => {
@@ -133,6 +154,7 @@ const AddRoomForm = () => {
       area: parseFloat(data.area),
       beds: data.beds,
       amenities: data.amenities.filter((amenity) => amenity.trim() !== ""), // Lọc bỏ amenities rỗng
+      features: data.features.filter((feature) => feature.trim() !== ""), // Lọc bỏ features rỗng
       totalRooms: parseInt(data.totalRooms),
       thumbnail: data.thumbnail[0],
       images: Array.from(data.images),
@@ -352,7 +374,56 @@ const AddRoomForm = () => {
             </p>
           )}
           <p className="mt-1 text-xs text-gray-500">
-            Maximum 100 characters per amenity
+            Maximum 50 characters per amenity
+          </p>
+        </div>
+
+        {/* Trường Features */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Features <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-2">
+            {features.map((feature, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={feature}
+                  onChange={(e) => handleFeatureChange(index, e.target.value)}
+                  placeholder={`Feature ${index + 1}`}
+                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.features && errors.features[index]
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {features.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFeature(index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddFeature}
+              className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs"
+            >
+              Add Feature
+            </button>
+          </div>
+          {errors.features && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.features.message ||
+                (errors.features[0] && errors.features[0].message)}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 50 characters per feature
           </p>
         </div>
 

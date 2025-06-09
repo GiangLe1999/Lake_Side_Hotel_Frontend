@@ -69,6 +69,15 @@ export const roomSchema = yup.object().shape({
         .max(50, "Each amenity must be at most 50 characters")
     )
     .min(1, "Please add at least one amenity"),
+  features: yup
+    .array()
+    .of(
+      yup
+        .string()
+        .required("Feature cannot be empty")
+        .max(50, "Each feature must be at most 50 characters")
+    )
+    .min(1, "Please add at least one feature"),
   totalRooms: yup
     .string()
     .required("Please enter the total rooms")

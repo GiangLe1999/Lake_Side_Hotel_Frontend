@@ -118,7 +118,7 @@ const BookingCard = ({ roomData }) => {
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-24">
+    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-[163px]">
       <div className="mb-6">
         <div className="flex items-baseline gap-2 mb-2">
           <span className="text-4xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">

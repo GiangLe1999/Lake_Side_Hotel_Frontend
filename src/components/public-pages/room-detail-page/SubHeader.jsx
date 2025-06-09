@@ -7,7 +7,7 @@ const SubHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white sticky top-0 z-50 border-t shadow border-gray-100">
+    <div className="bg-white sticky top-16 z-[49] shadow">
       <div className="container mx-auto px-4 py-[15px]">
         <div className="flex items-center justify-between">
           <button

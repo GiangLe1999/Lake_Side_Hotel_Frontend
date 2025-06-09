@@ -10,6 +10,8 @@ import RoomDetailPage from "./pages/public-pages/RoomDetailPage";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import AuthPage from "./pages/public-pages/AuthPage";
 import ProtectedRoute from "./components/wrapper/ProtectedRoute";
+import GoogleCallback from "./components/wrapper/GoogleCallback";
+import RoomsListingPage from "./pages/public-pages/RoomListingPage";
 
 function App() {
   return (
@@ -19,6 +21,7 @@ function App() {
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<HomePage />} />
           <Route path="room/:id" element={<RoomDetailPage />} />
+          <Route path="room-listing" element={<RoomsListingPage />} />
           <Route path="/login" element={<AuthPage />} />
         </Route>
 
@@ -35,6 +38,9 @@ function App() {
           <Route path="rooms/:id" element={<DashboardEditRoomPage />} />
           <Route path="add-room" element={<DashboardAddRoomPage />} />
         </Route>
+
+        {/* OAuth callback route */}
+        <Route path="/oauth/callback" element={<GoogleCallback />} />
 
         {/* 404 page */}
         <Route path="*" element={<div>Page Not Found</div>} />

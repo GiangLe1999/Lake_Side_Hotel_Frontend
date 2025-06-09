@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Phone, Shield, ArrowLeft, Mail, User } from "lucide-react";
@@ -10,23 +10,26 @@ import BookingSummary from "./BookingSumary";
 import FormInput from "./FormInput";
 import ConfirmationCodeSection from "./ConfirmationCodeSection";
 import ChoosePayment from "../ChoosePayment";
+import { useAuth } from "../../../../hooks/useAuth";
 
 const CustomerInfo = ({ roomId, onBack, bookingData }) => {
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [bookingId, setBookingId] = useState(null);
   const [showPaymentSelection, setShowPaymentSelection] = useState(false);
   const [codeTimer, startTimer] = useCountdownTimer();
+  const { user } = useAuth();
 
   // Initialize React Hook Form
   const form = useForm({
     resolver: yupResolver(customerInfoFormSchema),
     mode: "onChange",
     defaultValues: {
-      fullName: "",
-      email: "",
+      fullName: user?.fullName || "",
+      email: user?.email || "",
       tel: "",
       confirmationCode: "",
     },
+    reValidateMode: "onChange",
   });
 
   const {
@@ -35,10 +38,47 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
     watch,
     setValue,
     trigger,
-    formState: { errors, isValid },
+    formState: { errors },
     getValues,
   } = form;
+
+  const watchedFullName = watch("fullName");
   const watchedEmail = watch("email");
+  const watchedTel = watch("tel");
+  const watchedConfirmationCode = watch("confirmationCode");
+
+  // Trigger validation cho default values
+  useEffect(() => {
+    // Trigger validation cho các trường có default values
+    if (user?.fullName || user?.email) {
+      trigger(["fullName", "email"]);
+    }
+  }, [user, trigger]);
+
+  // Check validation state chi tiết hơn
+  const isManualValid = useMemo(() => {
+    const values = getValues();
+    return (
+      values.fullName?.trim() &&
+      values.email?.trim() &&
+      values.tel?.trim() &&
+      !errors.fullName &&
+      !errors.email &&
+      !errors.tel &&
+      (!isCodeSent ||
+        (isCodeSent &&
+          values.confirmationCode?.length === 6 &&
+          !errors.confirmationCode))
+    );
+  }, [
+    getValues,
+    errors,
+    isCodeSent,
+    watchedFullName,
+    watchedEmail,
+    watchedTel,
+    watchedConfirmationCode,
+  ]);
 
   // Custom hooks with success callback
   const {
@@ -55,15 +95,28 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
     }
   );
 
-  // Memoized values
-  const isFormReady = useMemo(
-    () => isValid && isCodeSent,
-    [isValid, isCodeSent]
-  );
-  const isEmailValidForCode = useMemo(
-    () => watchedEmail && !errors.email,
-    [watchedEmail, errors.email]
-  );
+  // Memoized values - SỬ DỤNG VALIDATION TỰ TẠO
+  const isFormReady = useMemo(() => {
+    return isManualValid && isCodeSent && watchedConfirmationCode.length === 6;
+  }, [isManualValid, isCodeSent, watchedConfirmationCode]);
+
+  const isValidForCode = useMemo(() => {
+    return (
+      watchedEmail?.trim() &&
+      !errors.email &&
+      watchedFullName?.trim() &&
+      !errors.fullName &&
+      watchedTel?.trim() &&
+      !errors.tel
+    );
+  }, [
+    watchedEmail,
+    errors.email,
+    watchedFullName,
+    errors.fullName,
+    watchedTel,
+    errors.tel,
+  ]);
 
   const isLoadingCode = useMemo(
     () =>
@@ -73,8 +126,9 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
 
   // Handlers
   const handleSendCode = useCallback(async () => {
-    const isEmailValid = await trigger("email");
-    if (!isEmailValid) return;
+    // TRIGGER VALIDATION CHO TẤT CẢ CÁC TRƯỜNG TRƯỚC KHI GỬI
+    const isFormValidForSending = await trigger(["fullName", "email", "tel"]);
+    if (!isFormValidForSending) return;
 
     const bookingFormData = {
       checkInDate: bookingData.checkIn,
@@ -132,7 +186,7 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-24">
+    <div className="bg-white rounded-3xl shadow border-t border-gray-100 p-8 sticky top-[163px]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
@@ -157,6 +211,7 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
           placeholder="Enter your full name"
           Icon={User}
           error={errors.fullName}
+          disabled={isCodeSent}
         />
 
         <FormInput
@@ -167,6 +222,7 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
           placeholder="Enter your email address"
           Icon={Mail}
           error={errors.email}
+          disabled={isCodeSent}
         />
 
         <FormInput
@@ -177,6 +233,7 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
           placeholder="Enter your phone number"
           Icon={Phone}
           error={errors.tel}
+          disabled={isCodeSent}
         />
 
         <ConfirmationCodeSection
@@ -186,7 +243,7 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
           watchedEmail={watchedEmail}
           isCodeSent={isCodeSent}
           codeTimer={codeTimer}
-          isEmailValidForCode={isEmailValidForCode}
+          isValidForCode={isValidForCode}
           isLoading={isLoadingCode}
           onSendCode={handleSendCode}
         />

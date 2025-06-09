@@ -1,72 +1,94 @@
-// components/GoogleCallback.js
-import React, { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { saveTokens } from "../service/auth-service";
-import { toast } from "react-toastify";
+// components/OAuthCallback.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { saveTokens } from "../../service/auth-service";
+import { useAuth } from "../../hooks/useAuth";
 
 const GoogleCallback = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { login } = useAuth();
+  const { login, setError, setLoading } = useAuth();
+  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
     const handleGoogleCallback = async () => {
       try {
-        // Lấy parameters từ URL
-        const accessToken = searchParams.get("accessToken");
-        const refreshToken = searchParams.get("refreshToken");
-        const userInfo = searchParams.get("userInfo");
+        setLoading(true);
 
-        if (accessToken && refreshToken) {
-          // Parse user info
-          const parsedUserInfo = userInfo
-            ? JSON.parse(decodeURIComponent(userInfo))
-            : null;
+        // Lấy fragment từ URL (phần sau dấu #)
+        const hash = window.location.hash.substring(1);
 
-          // Lấy rememberMe option đã lưu trước khi redirect
-          const rememberMe = localStorage.getItem("rememberMe") === "true";
-          localStorage.removeItem("rememberMe");
-
-          // Lưu tokens
-          saveTokens(accessToken, refreshToken, rememberMe);
-
-          // Cập nhật context
-          if (parsedUserInfo) {
-            login(parsedUserInfo);
-          }
-
-          toast.success("Login with Google successfully!");
-          navigate("/dashboard");
-        } else {
-          // Có lỗi trong quá trình OAuth
-          const error = searchParams.get("error");
-          toast.error(error || "Google login failed");
-          navigate("/login");
+        if (!hash) {
+          throw new Error("No authentication data received");
         }
+
+        // Parse parameters từ fragment
+        const params = new URLSearchParams(hash);
+
+        // Lấy các thông tin từ URL
+        const accessToken = params.get("accessToken");
+        const refreshToken = params.get("refreshToken");
+        const userId = params.get("userId");
+        const email = params.get("email");
+        const fullName = params.get("fullName");
+        const role = params.get("role");
+
+        // Kiểm tra các thông tin bắt buộc
+        if (!accessToken || !refreshToken || !userId || !email) {
+          throw new Error("Missing required authentication data");
+        }
+
+        // Tạo object user từ thông tin nhận được
+        const user = {
+          id: parseInt(userId),
+          email: decodeURIComponent(email),
+          fullName: decodeURIComponent(fullName || ""),
+          role: role || "USER",
+        };
+
+        // Lưu tokens vào localStorage/sessionStorage
+        saveTokens(accessToken, refreshToken, true);
+
+        // Cập nhật AuthContext với thông tin user
+        login(user);
+
+        // Xóa fragment khỏi URL để bảo mật
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+
+        setTimeout(() => {
+          window.location.replace("/");
+        }, 1000);
       } catch (error) {
         console.error("Google callback error:", error);
-        toast.error("An error occurred during Google login");
-        navigate("/login");
+        setError(error.message || "Authentication failed");
+
+        // Redirect về trang login nếu có lỗi
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 2000);
+      } finally {
+        setProcessing(false);
+        setLoading(false);
       }
     };
 
     handleGoogleCallback();
-  }, [searchParams, navigate, login]);
+  }, [login, setError, setLoading, navigate]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
-          Processing Google Login...
-        </h2>
-        <p className="text-gray-600">
-          Please wait while we complete your login.
-        </p>
+  // UI loading/error states
+  if (processing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+        <span className="ml-3 text-gray-600">Loading...</span>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export default GoogleCallback;

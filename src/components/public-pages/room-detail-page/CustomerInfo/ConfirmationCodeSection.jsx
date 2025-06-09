@@ -1,5 +1,6 @@
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useCallback } from "react";
+import { Loading } from "../../../common/Loading";
 
 const CODE_MAX_LENGTH = 6;
 
@@ -10,12 +11,12 @@ const ConfirmationCodeSection = ({
   watchedEmail,
   isCodeSent,
   codeTimer,
-  isEmailValidForCode,
+  isValidForCode,
   isLoading,
   onSendCode,
 }) => {
   const handleCodeChange = useCallback(
-    (e) => {
+    async (e) => {
       const value = e.target.value
         .replace(/[^A-Za-z0-9 ]/g, "")
         .slice(0, CODE_MAX_LENGTH);
@@ -24,11 +25,11 @@ const ConfirmationCodeSection = ({
     [setValue]
   );
 
-  const isButtonDisabled = isLoading || codeTimer > 0 || !isEmailValidForCode;
+  const isButtonDisabled = isLoading || codeTimer > 0 || !isValidForCode;
 
   const getButtonText = () => {
-    if (isLoading) return <Loader2 className="w-4 h-4 animate-spin" />;
-    if (codeTimer > 0) return `${codeTimer}s`;
+    if (isLoading) return <Loading className="w-4 h-4 animate-spin" />;
+    if (codeTimer > 0) return `Resend in ${codeTimer}s`;
     if (isCodeSent) return "Resend Code";
     return "Send Code";
   };
@@ -43,7 +44,7 @@ const ConfirmationCodeSection = ({
           <input
             {...register("confirmationCode")}
             type="text"
-            className={`flex-1 p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+            className={`flex-1 p-3 main-input ${
               errors.confirmationCode ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="Enter 6-character code"

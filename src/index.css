@@ -36,3 +36,7 @@ input::-webkit-contacts-auto-fill-button {
 input[type="password"]::-webkit-textfield-decoration-container {
   display: none !important;
 }
+
+.main-input {
+  @apply w-full p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none;
+}

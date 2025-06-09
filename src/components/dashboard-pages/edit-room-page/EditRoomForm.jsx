@@ -74,8 +74,8 @@ const EditRoomForm = ({ id }) => {
     originalImageKeys: [],
   });
 
-  // Amenities state
   const [amenities, setAmenities] = useState([""]);
+  const [features, setFeatures] = useState([""]);
 
   // Form state
   const {
@@ -95,6 +95,7 @@ const EditRoomForm = ({ id }) => {
       area: "",
       beds: "",
       amenities: [""],
+      features: [""],
       totalRooms: "",
       thumbnail: null,
       images: null,
@@ -132,6 +133,7 @@ const EditRoomForm = ({ id }) => {
       area: values.area,
       beds: values.beds,
       amenities: values.amenities,
+      features: values.features,
       price: values.price,
       thumbnail: values.thumbnail,
       images: values.images,
@@ -175,6 +177,10 @@ const EditRoomForm = ({ id }) => {
       newChangedFields.add("amenities");
     }
 
+    if (!compareSimpleArrays(currentData.features, originalData.features)) {
+      newChangedFields.add("features");
+    }
+
     if (currentData.price !== originalData.price) {
       newChangedFields.add("price");
     }
@@ -204,6 +210,7 @@ const EditRoomForm = ({ id }) => {
     watchedValues.area,
     watchedValues.beds,
     watchedValues.amenities,
+    watchedValues.features,
     watchedValues.totalRooms,
     watchedValues.price,
     watchedValues.thumbnail,
@@ -219,12 +226,17 @@ const EditRoomForm = ({ id }) => {
     [changedFields]
   );
 
-  // Handle amenities
   const handleAddAmenity = useCallback(() => {
     const newAmenities = [...amenities, ""];
     setAmenities(newAmenities);
     setValue("amenities", newAmenities);
   }, [amenities, setValue]);
+
+  const handleAddFeature = useCallback(() => {
+    const newFeatures = [...features, ""];
+    setFeatures(newFeatures);
+    setValue("features", newFeatures);
+  }, [features, setValue]);
 
   const handleRemoveAmenity = useCallback(
     (index) => {
@@ -235,6 +247,15 @@ const EditRoomForm = ({ id }) => {
     [amenities, setValue]
   );
 
+  const handleRemoveFeature = useCallback(
+    (index) => {
+      const newFeatures = features.filter((_, i) => i !== index);
+      setFeatures(newFeatures);
+      setValue("features", newFeatures);
+    },
+    [features, setValue]
+  );
+
   const handleAmenityChange = useCallback(
     (index, value) => {
       const newAmenities = [...amenities];
@@ -243,6 +264,16 @@ const EditRoomForm = ({ id }) => {
       setValue("amenities", newAmenities);
     },
     [amenities, setValue]
+  );
+
+  const handleFeatureChange = useCallback(
+    (index, value) => {
+      const newFeatures = [...features];
+      newFeatures[index] = value;
+      setFeatures(newFeatures);
+      setValue("features", newFeatures);
+    },
+    [features, setValue]
   );
 
   // Handle thumbnail change
@@ -434,6 +465,11 @@ const EditRoomForm = ({ id }) => {
       setAmenities(roomAmenities);
       setValue("amenities", roomAmenities);
 
+      // Reset features
+      const roomFeatures = room.features || [""];
+      setFeatures(roomFeatures);
+      setValue("features", roomFeatures);
+
       const isCustom = roomTypes && !roomTypes.includes(room.type);
       if (isCustom) {
         setValue("type", "new");
@@ -489,6 +525,12 @@ const EditRoomForm = ({ id }) => {
         );
       }
 
+      if (isFieldChanged("features")) {
+        payload.features = data.features.filter(
+          (feature) => feature.trim() !== ""
+        );
+      }
+
       if (isFieldChanged("price")) {
         payload.price = parseFloat(data.price);
       }
@@ -517,10 +559,13 @@ const EditRoomForm = ({ id }) => {
       setValue("totalRooms", room.totalRooms || "");
       setValue("price", room.price);
 
-      // Set amenities
       const roomAmenities = room.amenities || [""];
       setAmenities(roomAmenities);
       setValue("amenities", roomAmenities);
+
+      const roomFeatures = room.features || [""];
+      setFeatures(roomFeatures);
+      setValue("features", roomFeatures);
 
       const isCustom = roomTypes && !roomTypes.includes(room.type);
       setImageState((prev) => ({ ...prev, isCustomType: isCustom }));
@@ -817,7 +862,58 @@ const EditRoomForm = ({ id }) => {
             </p>
           )}
           <p className="mt-1 text-xs text-gray-500">
-            Maximum 100 characters per amenity
+            Maximum 50 characters per amenity
+          </p>
+        </div>
+
+        {/* Features */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Features <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-2">
+            {features.map((feature, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={feature}
+                  onChange={(e) => handleFeatureChange(index, e.target.value)}
+                  placeholder={`Feature ${index + 1}`}
+                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.features && errors.features[index]
+                      ? "border-red-500"
+                      : isFieldChanged("features")
+                      ? "border-orange-300 bg-orange-50"
+                      : "border-gray-300"
+                  }`}
+                />
+                {features.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFeature(index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddFeature}
+              className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-xs"
+            >
+              Add Feature
+            </button>
+          </div>
+          {errors.features && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.features.message ||
+                (errors.features[0] && errors.features[0].message)}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 50 characters per feature
           </p>
         </div>
 

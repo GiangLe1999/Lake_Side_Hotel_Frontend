@@ -7,6 +7,7 @@ const FormInput = ({
   // eslint-disable-next-line no-unused-vars
   Icon,
   error,
+  disabled = false,
   ...props
 }) => (
   <div>
@@ -17,10 +18,11 @@ const FormInput = ({
       <input
         {...register(name)}
         type={type}
-        className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+        className={`main-input ${
           error ? "border-red-300" : "border-gray-300"
-        }`}
+        } ${disabled ? "pointer-events-none opacity-40" : ""}`}
         placeholder={placeholder}
+        disabled={disabled}
         {...props}
       />
       <Icon className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />

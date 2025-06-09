@@ -39,18 +39,17 @@ const AuthPage = () => {
     mutationFn: userRegister,
     onSuccess: (res) => {
       if (res?.status === 201) {
-        // Lưu tokens
-        saveTokens(res.accessToken, res.refreshToken, rememberMe);
+        const { accessToken, refreshToken, user } = res.data;
 
-        // Cập nhật context
-        login(res.userInfo);
+        saveTokens(accessToken, refreshToken, rememberMe);
+        login(user);
         localStorage.setItem("rememberMe", rememberMe.toString());
 
         toast.success("Register successfully!");
 
         navigate("/");
       } else {
-        toast.error(res.message || "Register failed");
+        toast.error("Register failed");
       }
     },
     onError: (error) => {
@@ -63,18 +62,16 @@ const AuthPage = () => {
     mutationFn: userLogin,
     onSuccess: (res) => {
       if (res?.status === 200) {
-        // Lưu tokens
-        saveTokens(res?.data.accessToken, res?.data.refreshToken, rememberMe);
+        const { accessToken, refreshToken, user } = res.data;
 
-        // Cập nhật context
-        login(res?.user);
+        saveTokens(accessToken, refreshToken, rememberMe);
+        login(user);
         localStorage.setItem("rememberMe", rememberMe.toString());
 
         toast.success("Login successfully!");
-
         navigate("/");
       } else {
-        toast.error(res?.message || "Login failed");
+        toast.error("Login failed");
       }
     },
     onError: (error) => {
@@ -109,8 +106,9 @@ const AuthPage = () => {
 
   const handleGoogleLogin = () => {
     // Lưu rememberMe option để xử lý sau khi redirect về từ Google
-    localStorage.setItem("rememberMe", rememberMe.toString());
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    localStorage.setItem("rememberMe", true.toString());
+    window.location.href =
+      "http://localhost:8080/api/oauth2/authorization/google";
   };
 
   const isPending = isLogin ? loginPending : registerPending;

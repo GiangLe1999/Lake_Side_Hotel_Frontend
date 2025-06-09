@@ -153,60 +153,32 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // // Xử lý các lỗi HTTP khác
-    // let errorMessage = "Something went wrong";
+    // Xử lý các lỗi HTTP khác
+    let errorMessage = "Something went wrong";
 
-    // if (error.response) {
-    //   // Lỗi từ server với response
-    //   const { status, data } = error.response;
+    if (error.response) {
+      // Lỗi từ server với response
+      const { status, data } = error.response;
 
-    //   // Chuẩn hóa message
-    //   if (data.message) {
-    //     errorMessage = data.message;
-    //   } else if (data.errors && Array.isArray(data.errors)) {
-    //     errorMessage = data.errors.map((e) => e.message || e).join(", ");
-    //   } else if (typeof data === "string") {
-    //     errorMessage = data;
-    //   } else {
-    //     errorMessage = `Error: ${status}`;
-    //   }
+      // Chuẩn hóa message
+      if (data.message) {
+        errorMessage = data.message;
+      } else if (data.errors && Array.isArray(data.errors)) {
+        errorMessage = data.errors.map((e) => e.message || e).join(", ");
+      } else if (typeof data === "string") {
+        errorMessage = data;
+      } else {
+        errorMessage = `Error: ${status}`;
+      }
+    }
 
-    //   // Xử lý các mã lỗi phổ biến
-    //   switch (status) {
-    //     case 400:
-    //       // Bad Request - thường là lỗi validation
-    //       break;
-    //     case 403:
-    //       // Forbidden - không có quyền truy cập
-    //       toast?.error("You do not have permission to perform this action");
-    //       break;
-    //     case 404:
-    //       // Not Found
-    //       break;
-    //     case 500:
-    //       // Server Error
-    //       toast?.error("Server error. Please try again later");
-    //       break;
-    //     default:
-    //       // Các lỗi khác
-    //       break;
-    //   }
-    // } else if (error.request) {
-    //   // Request đã gửi nhưng không nhận được response
-    //   errorMessage = "No response from server. Please check your connection";
-    //   toast?.error(errorMessage);
-    // } else {
-    //   // Lỗi khi setting up request
-    //   errorMessage = error.message;
-    // }
-
-    // // Trả về lỗi đã được chuẩn hóa để dễ xử lý ở frontend
-    // return Promise.reject({
-    //   originalError: error,
-    //   message: errorMessage,
-    //   status: error.response?.status || 0,
-    //   data: error.response?.data,
-    // });
+    // Trả về lỗi đã được chuẩn hóa để dễ xử lý ở frontend
+    return Promise.reject({
+      originalError: error,
+      message: errorMessage,
+      status: error.response?.status || 0,
+      data: error.response?.data,
+    });
   }
 );
 
