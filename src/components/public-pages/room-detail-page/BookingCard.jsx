@@ -128,8 +128,10 @@ const BookingCard = ({ roomData }) => {
         </div>
         <div className="flex items-center gap-1 text-sm text-gray-500">
           <Star className="w-4 h-4 text-yellow-400 fill-current" />
-          <span className="font-semibold">{4.9}</span>
-          <span>({10} reviews)</span>
+          <span className="font-semibold">
+            {roomData?.avgRating?.toFixed(2)}
+          </span>
+          <span>({roomData?.reviewCount} reviews)</span>
         </div>
       </div>
 

@@ -41,7 +41,9 @@ const RoomInfo = ({ room }) => {
         <div className="flex items-center justify-between mb-7">
           <div className="flex items-center gap-1">
             <Star className="w-5 h-5 text-yellow-400 fill-current" />
-            <span className="font-bold text-gray-800">{room?.rating}</span>
+            <span className="font-bold text-gray-800">
+              {room?.avgRating?.toFixed(2)}
+            </span>
             <span className="text-gray-500">({room?.reviewCount} reviews)</span>
           </div>
         </div>
@@ -76,7 +78,6 @@ const RoomInfo = ({ room }) => {
             for (const key of Object.keys(iconMap)) {
               if (amenity.toLowerCase().includes(key)) {
                 IconComponent = iconMap[key];
-                console.log("hi");
                 break; // ✅ Thoát vòng lặp
               } else {
                 IconComponent = iconMap.default;

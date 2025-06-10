@@ -30,3 +30,8 @@
   display: block;
   padding: 6px 12px;
 }
+
+.user-ui-pagination.pagination li.active {
+  background: linear-gradient(to right, #f59e0b, #f97316);
+  border-color: #f59e0b;
+}

@@ -3,10 +3,10 @@ import RoomImageGallery from "../../components/public-pages/room-detail-page/Roo
 import RoomInfo from "../../components/public-pages/room-detail-page/RoomInfo";
 import SubHeader from "../../components/public-pages/room-detail-page/SubHeader";
 import BookingCard from "../../components/public-pages/room-detail-page/BookingCard";
-import Reviews from "../../components/public-pages/room-detail-page/Reviews";
 import { useQuery } from "@tanstack/react-query";
 import { getRoom } from "../../service/room-service";
 import { useParams } from "react-router-dom";
+import Reviews from "../../components/public-pages/room-detail-page/Reviews";
 
 const RoomDetailPage = () => {
   const { id } = useParams();
@@ -28,7 +28,7 @@ const RoomDetailPage = () => {
 
             <RoomInfo room={room} />
 
-            <Reviews />
+            <Reviews room={room} />
           </div>
 
           <div className="lg:col-span-1">
