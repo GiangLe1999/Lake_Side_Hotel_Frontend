@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { MessageSquareText, Star } from "lucide-react";
 import ReviewList from "./ReviewList";
 import AddReviewForm from "./AddReviewForm";
 
@@ -8,9 +8,14 @@ const Reviews = ({ room }) => {
       {/* Header */}
       <div className="px-8 py-6 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Customer Reviews
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl">
+              <MessageSquareText className="w-6 h-6 text-yellow-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800">
+              Customer Reviews
+            </h3>
+          </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (

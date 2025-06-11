@@ -53,6 +53,11 @@ export const getRoom = async (id) => {
   return apiClient.get(`/rooms/public/${id}`);
 };
 
-export const getRooms = async ({ pageNo = 0, pageSize = 9 }) => {
-  return apiClient.get(`/rooms/public?pageNo=${pageNo}&pageSize=${pageSize}`);
+export const getRoomsForHomepage = async () => {
+  try {
+    const response = await apiClient.get(`/rooms/public/for-homepage`);
+    return response?.data?.data;
+  } catch (error) {
+    console.log(error);
+  }
 };

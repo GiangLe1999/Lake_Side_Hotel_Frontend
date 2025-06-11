@@ -7,6 +7,9 @@ import { useQuery } from "@tanstack/react-query";
 import { getRoom } from "../../service/room-service";
 import { useParams } from "react-router-dom";
 import Reviews from "../../components/public-pages/room-detail-page/Reviews";
+import RoomPolicies from "../../components/public-pages/room-detail-page/RoomPolicies";
+import RoomFAQs from "../../components/public-pages/room-detail-page/RoomFAQs";
+import SimilarRooms from "../../components/public-pages/room-detail-page/SimilarRooms";
 
 const RoomDetailPage = () => {
   const { id } = useParams();
@@ -25,10 +28,11 @@ const RoomDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <RoomImageGallery room={room} />
-
             <RoomInfo room={room} />
-
+            <RoomPolicies room={room} />
+            <RoomFAQs room={room} />
             <Reviews room={room} />
+            <SimilarRooms currentRoom={room} />
           </div>
 
           <div className="lg:col-span-1">

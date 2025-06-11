@@ -4,12 +4,17 @@ import {
   Car,
   CheckCircle,
   Coffee,
+  Fence,
+  HandPlatter,
   HousePlus,
+  List,
   MapPin,
   Phone,
+  ShowerHead,
   Star,
   Tv,
   Users,
+  Utensils,
   Wifi,
   Wind,
 } from "lucide-react";
@@ -28,6 +33,11 @@ const iconMap = {
   wifi: Wifi,
   wind: Wind,
   default: HousePlus,
+  balcony: Fence,
+  shower: ShowerHead,
+  service: HandPlatter,
+  jacuzzi: Bath,
+  breakfast: Utensils,
 };
 
 const RoomInfo = ({ room }) => {
@@ -57,7 +67,7 @@ const RoomInfo = ({ room }) => {
       </div>
 
       {/* Room Details */}
-      <div className="flex items-center gap-6 mb-8 border-t border-gray-100 pt-8 text-yellow-600">
+      <div className="flex items-center gap-6 mb-14 border-t border-gray-100 pt-8 text-yellow-600">
         <div className="flex items-center gap-2">
           <MapPin className="w-5 h-5" />
           <span>{room?.area}m²</span>
@@ -69,8 +79,14 @@ const RoomInfo = ({ room }) => {
       </div>
 
       {/* Amenities */}
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Amenities</h3>
+      <div className="mb-14">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl">
+            <Bath className="w-6 h-6 text-yellow-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">Amenities</h3>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {room?.amenities?.map((amenity, index) => {
             let IconComponent;
@@ -101,7 +117,12 @@ const RoomInfo = ({ room }) => {
 
       {/* Features */}
       <div className="mb-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Room Features</h3>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl">
+            <List className="w-6 h-6 text-yellow-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">Room Features</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {room?.features?.map((feature, index) => (
             <div key={index} className="flex items-center gap-3">

@@ -1,15 +1,14 @@
 import { Heart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getRooms } from "../../../service/room-service";
+import { getRoomsForHomepage } from "../../../service/room-service";
 import RoomCard from "../../common/RoomCard";
 import RoomCardSkeleton from "../../common/RoomCardSkeleton";
 import { Link } from "react-router-dom";
 
 const FeaturedRooms = () => {
   const { data: rooms, isLoading: getRoomsLoading } = useQuery({
-    queryKey: ["get-featured-rooms"],
-    queryFn: () => getRooms(0, 3),
-    select: (res) => res.data.data.items,
+    queryKey: ["get-rooms-for-homepage"],
+    queryFn: getRoomsForHomepage,
   });
 
   return (
