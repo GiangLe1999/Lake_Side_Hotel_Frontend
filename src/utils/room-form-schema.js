@@ -39,7 +39,14 @@ const validateImageFileList = (fileList) => {
 };
 
 export const roomSchema = yup.object().shape({
-  type: yup.string().required("Please select a room type"),
+  name: yup
+    .string()
+    .required("Please select a room name")
+    .max(255, "Name must be at most 255 characters"),
+  type: yup
+    .string()
+    .required("Please select a room type")
+    .max(255, "Type must be at most 255 characters"),
   customType: yup.string().when("type", {
     is: "new",
     then: (schema) => schema.required("Please enter a new room type"),
@@ -48,7 +55,10 @@ export const roomSchema = yup.object().shape({
     .string()
     .required("Please enter a room summary")
     .max(255, "Summary must be at most 255 characters"),
-  description: yup.string().required("Please enter a room description"),
+  description: yup
+    .string()
+    .required("Please enter a room description")
+    .max(2500, "Summary must be at most 2500 characters"),
   area: yup
     .string()
     .required("Please enter the room area")
@@ -60,6 +70,14 @@ export const roomSchema = yup.object().shape({
     .string()
     .required("Please enter bed information")
     .max(100, "Beds description must be at most 100 characters"),
+  occupancy: yup
+    .string()
+    .required("Please enter the occupancy")
+    .matches(/^\d+$/, "Occupancy rooms must be a valid number")
+    .test("isPositive", "Occupancy rooms must be at least 1", (value) => {
+      if (!value) return true; // Không nhập thì hợp lệ
+      return parseInt(value, 10) >= 1;
+    }),
   amenities: yup
     .array()
     .of(

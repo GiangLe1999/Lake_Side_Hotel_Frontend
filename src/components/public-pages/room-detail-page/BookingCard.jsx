@@ -148,9 +148,7 @@ const BookingCard = ({ roomData }) => {
                 value={checkIn}
                 min={today}
                 onChange={handleCheckInChange}
-                className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
-                  dateError ? "border-red-300" : "border-gray-300"
-                }`}
+                className={`main-input ${dateError ? "border-red-300" : ""}`}
               />
               <Calendar className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
@@ -165,9 +163,7 @@ const BookingCard = ({ roomData }) => {
                 value={checkOut}
                 min={checkIn || today}
                 onChange={handleCheckOutChange}
-                className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
-                  dateError ? "border-red-300" : "border-gray-300"
-                }`}
+                className={`main-input ${dateError ? "border-red-300" : ""}`}
               />
               <Calendar className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
@@ -201,9 +197,12 @@ const BookingCard = ({ roomData }) => {
             <select
               value={guests}
               onChange={(e) => setGuests(parseInt(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent appearance-none"
+              className="main-input appearance-none"
             >
-              {[1, 2, 3, 4, 5, 6].map((num) => (
+              {Array.from(
+                { length: roomData?.occupancy || 1 },
+                (_, i) => i + 1
+              )?.map((num) => (
                 <option key={num} value={num}>
                   {num} {num === 1 ? "Guest" : "Guests"}
                 </option>

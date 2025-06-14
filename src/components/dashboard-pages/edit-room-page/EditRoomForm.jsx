@@ -88,12 +88,14 @@ const EditRoomForm = ({ id }) => {
   } = useForm({
     resolver: yupResolver(roomSchema),
     defaultValues: {
+      name: "",
       type: "",
       customType: "",
       summary: "",
       description: "",
       area: "",
       beds: "",
+      occupancy: "",
       amenities: [""],
       features: [""],
       totalRooms: "",
@@ -127,14 +129,17 @@ const EditRoomForm = ({ id }) => {
   const getCurrentFormData = useCallback(() => {
     const values = getValues();
     return {
+      name: values.name,
       type: values.type === "new" ? values.customType : values.type,
       summary: values.summary,
       description: values.description,
       area: values.area,
       beds: values.beds,
+      occupancy: values.occupancy,
       amenities: values.amenities,
       features: values.features,
       price: values.price,
+      totalRooms: values.totalRooms,
       thumbnail: values.thumbnail,
       images: values.images,
     };
@@ -149,6 +154,10 @@ const EditRoomForm = ({ id }) => {
     const newChangedFields = new Set();
 
     // Compare basic fields
+    if (currentData.name !== originalData.name) {
+      newChangedFields.add("name");
+    }
+
     if (currentData.type !== originalData.type) {
       newChangedFields.add("type");
     }
@@ -167,6 +176,10 @@ const EditRoomForm = ({ id }) => {
 
     if (currentData.beds !== originalData.beds) {
       newChangedFields.add("beds");
+    }
+
+    if (currentData.occupancy !== originalData.occupancy) {
+      newChangedFields.add("occupancy");
     }
 
     if (currentData.totalRooms !== originalData.totalRooms) {
@@ -203,12 +216,14 @@ const EditRoomForm = ({ id }) => {
   useEffect(() => {
     detectChanges();
   }, [
+    watchedValues.name,
     watchedValues.type,
     watchedValues.customType,
     watchedValues.summary,
     watchedValues.description,
     watchedValues.area,
     watchedValues.beds,
+    watchedValues.occupancy,
     watchedValues.amenities,
     watchedValues.features,
     watchedValues.totalRooms,
@@ -452,11 +467,13 @@ const EditRoomForm = ({ id }) => {
 
     // Reset to original data
     if (originalDataRef.current && room) {
+      setValue("name", room.name);
       setValue("type", room.type);
       setValue("summary", room.summary || "");
       setValue("description", room.description || "");
       setValue("area", room.area || "");
       setValue("beds", room.beds || "");
+      setValue("occupancy", room.occupancy || "");
       setValue("totalRooms", room.totalRooms || "");
       setValue("price", room.price);
 
@@ -495,6 +512,10 @@ const EditRoomForm = ({ id }) => {
 
       const payload = {};
 
+      if (isFieldChanged("name")) {
+        payload.name = data.name;
+      }
+
       if (isFieldChanged("type")) {
         payload.type = data.type === "new" ? data.customType : data.type;
       }
@@ -513,6 +534,10 @@ const EditRoomForm = ({ id }) => {
 
       if (isFieldChanged("beds")) {
         payload.beds = data.beds;
+      }
+
+      if (isFieldChanged("occupancy")) {
+        payload.occupancy = data.occupancy;
       }
 
       if (isFieldChanged("totalRooms")) {
@@ -551,11 +576,13 @@ const EditRoomForm = ({ id }) => {
   // Load initial data và set original reference
   useEffect(() => {
     if (room && !getRoomLoading) {
+      setValue("name", room.name);
       setValue("type", room.type);
       setValue("summary", room.summary || "");
       setValue("description", room.description || "");
       setValue("area", room.area || "");
       setValue("beds", room.beds || "");
+      setValue("occupancy", room.occupancy || "");
       setValue("totalRooms", room.totalRooms || "");
       setValue("price", room.price);
 
@@ -634,6 +661,29 @@ const EditRoomForm = ({ id }) => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
+        {/* Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("name")}
+            placeholder="Brief name of the room"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name
+                ? "border-red-500"
+                : isFieldChanged("name")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 255 characters</p>
+        </div>
+
         {/* Room Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -668,6 +718,9 @@ const EditRoomForm = ({ id }) => {
           {errors.type && (
             <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
           )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 255 characters - Choose or create a new one
+          </p>
         </div>
 
         {/* Custom Type Input */}
@@ -743,7 +796,7 @@ const EditRoomForm = ({ id }) => {
               {errors.description.message}
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500">Maximum 1000 characters</p>
+          <p className="mt-1 text-xs text-gray-500">Maximum 2500 characters</p>
         </div>
 
         {/* Area */}
@@ -789,6 +842,30 @@ const EditRoomForm = ({ id }) => {
             <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
           )}
           <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Occupancy */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Occupancy <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("occupancy")}
+            placeholder="e.g., 1 or 10"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.occupancy
+                ? "border-red-500"
+                : isFieldChanged("occupancy")
+                ? "border-orange-300 bg-orange-50"
+                : "border-gray-300"
+            }`}
+          />
+          {errors.occupancy && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.occupancy.message}
+            </p>
+          )}
         </div>
 
         {/* Total Rooms */}

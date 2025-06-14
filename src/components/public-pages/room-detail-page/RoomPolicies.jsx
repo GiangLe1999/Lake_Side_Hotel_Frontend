@@ -9,7 +9,6 @@ import {
   Calendar,
   CreditCard,
   Users,
-  Cigarette,
   Volume2,
   Baby,
   PawPrint,
@@ -88,7 +87,7 @@ const RoomPolicies = ({ room }) => {
     {
       icon: Users,
       title: "Maximum Occupancy",
-      description: `Up to ${room?.maxGuests || 4} guests allowed`,
+      description: `Up to ${room?.occupancy || 1} guests allowed`,
       allowed: true,
     },
     {

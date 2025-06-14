@@ -18,9 +18,9 @@ const FormInput = ({
       <input
         {...register(name)}
         type={type}
-        className={`main-input ${
-          error ? "border-red-300" : "border-gray-300"
-        } ${disabled ? "pointer-events-none opacity-40" : ""}`}
+        className={`main-input ${error ? "border-red-300" : ""} ${
+          disabled ? "pointer-events-none opacity-40" : ""
+        }`}
         placeholder={placeholder}
         disabled={disabled}
         {...props}

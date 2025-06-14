@@ -56,12 +56,14 @@ const AddRoomForm = () => {
   } = useForm({
     resolver: yupResolver(roomSchema),
     defaultValues: {
+      name: "",
       type: "",
       customType: "",
       summary: "",
       description: "",
       area: "",
       beds: "",
+      occupancy: "",
       amenities: [""],
       features: [""],
       totalRooms: "",
@@ -148,11 +150,13 @@ const AddRoomForm = () => {
   const onSubmit = (data) => {
     const roomType = data.type === "new" ? data.customType : data.type;
     addRoomMutation({
+      name: data.name,
       type: roomType,
       summary: data.summary,
       description: data.description,
       area: parseFloat(data.area),
       beds: data.beds,
+      occupancy: data.occupancy,
       amenities: data.amenities.filter((amenity) => amenity.trim() !== ""), // Lọc bỏ amenities rỗng
       features: data.features.filter((feature) => feature.trim() !== ""), // Lọc bỏ features rỗng
       totalRooms: parseInt(data.totalRooms),
@@ -182,6 +186,25 @@ const AddRoomForm = () => {
       <h2 className="text-2xl font-bold mb-6">Add New Room</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Trường Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("name")}
+            placeholder="Name of the room"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">Maximum 255 characters</p>
+        </div>
+
         {/* Trường Type (Select) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -206,6 +229,9 @@ const AddRoomForm = () => {
           {errors.type && (
             <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
           )}
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 255 characters - Choose or create a new one
+          </p>
         </div>
 
         {/* Custom Type Input */}
@@ -269,7 +295,7 @@ const AddRoomForm = () => {
               {errors.description.message}
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500">Maximum 1000 characters</p>
+          <p className="mt-1 text-xs text-gray-500">Maximum 2500 characters</p>
         </div>
 
         {/* Trường Area */}
@@ -307,6 +333,26 @@ const AddRoomForm = () => {
             <p className="mt-1 text-sm text-red-600">{errors.beds.message}</p>
           )}
           <p className="mt-1 text-xs text-gray-500">Maximum 100 characters</p>
+        </div>
+
+        {/* Trường Occupancy */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Occupancy <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            {...register("occupancy")}
+            placeholder="e.g., 1 or 10"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.occupancy ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.occupancy && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.occupancy.message}
+            </p>
+          )}
         </div>
 
         {/* Trường Total Rooms */}

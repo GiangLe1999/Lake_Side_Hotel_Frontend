@@ -1,0 +1,78 @@
+Tôi đang làm 1 ứng dụng đặt phòng khác sạn. Tôi sử dụng Spring Boot ở phía backend và React 19, axios, tanstack-query, tailwindcss ở phía frontend. (Đã cấu hình authentication request với axios trong file api-client rồi ) Tôi muốn có 1 nút Live Chat ở toàn trang. Khi bấm nút Live CHat này tôi cần 1 Popup hiện ra để user có thể chat với quản trị viên. Live chat này cho phép cả người dùng không đăng nhập và người dùng đã đăng nhập sử dụng. Đồng thời, tại mỗi trang room detail, tôi cũng đã có sẵn 1 nút Live Chat (nên không cần tạo lại giao diện). Khi click vào thì công dụng cũng như nút Live Chat toàn trang. Lịch sử chat sẽ cần lưu lại để quản trị viên có thể quản lý trong dashboard. Những gì tôi đã triển khải ở backend là ChatConversation, ChatMessage, InitChatRequest, SendMessageRequest, ChatConversationRepository, ChatMessageRepository, ChatServiceImpl, Chat Controller, WebSocketSecurityConfig, AdminChatController Bây giờ tôi không biết cách nào để triên khai tại frontend. Hãy giúp tôi làm việc đó, đồng thời tạo UI giúp tôi luôn cho thật đẹp với nội dung tiếng Anh, màu chủ đạo là orange-500 và yellow-500 (hoặc màu phù hợp tùy bạn).
+
+Đây là ChatMessage entity 
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "tbl_chat_message")
+public class ChatMessage extends AbstractEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private ChatConversation conversation;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Enumerated(EnumType.STRING)
+    private SenderType senderType; // USER, ADMIN, SYSTEM
+
+    @Enumerated(EnumType.STRING)
+    private MessageType messageType = MessageType.TEXT; // TEXT, IMAGE, FILE
+
+    @Column(name = "sender_name")
+    private String senderName; // Tên người gửi
+
+    @Column(name = "is_read")
+    private Boolean isRead = false;
+
+    @Column(name = "file_url")
+    private String fileUrl; // URL file nếu có
+}
+
+Và đây là Chat Conversation entity
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "tbl_chat_conversation")
+public class ChatConversation extends AbstractEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user; // Null cho guest user
+
+    @Column(name = "guest_name")
+    private String guestName; // Tên của guest nếu không đăng nhập
+
+    @Column(name = "guest_email")
+    private String guestEmail; // Email của guest (optional)
+
+    @Column(name = "session_id", unique = true)
+    private String sessionId; // Unique session ID
+
+    @Enumerated(EnumType.STRING)
+    private ChatStatus status = ChatStatus.ACTIVE;
+
+    @Column(name = "room_id")
+    private Long roomId; // ID phòng nếu chat từ room detail
+
+    @Column(name = "last_message_at")
+    private LocalDateTime lastMessageAt;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "conversation")
+    private List<ChatMessage> messages;
+
+    @PrePersist
+    @PreUpdate
+    private void updateLastMessageTime() {
+        this.lastMessageAt = LocalDateTime.now();
+    }
+}

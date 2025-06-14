@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 const ToastifyWrapper = () => {
   return (
     <ToastContainer
+      toastClassName="custom-toast"
       position="top-right" // Vị trí toast
       autoClose={3000} // Tự động ẩn sau 3s
       hideProgressBar={false} // Hiện thanh tiến trình

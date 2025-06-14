@@ -11,7 +11,7 @@ import {
   Camera,
 } from "lucide-react";
 
-const SimilarRooms = ({ room }) => {
+const SimilarRooms = ({ currentRoom }) => {
   // Mock data - replace with actual similar rooms from your API
   const similarRooms = [
     {

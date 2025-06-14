@@ -11,75 +11,75 @@ import {
   Info,
 } from "lucide-react";
 
-const RoomFAQs = ({ room }) => {
-  const [expandedFAQ, setExpandedFAQ] = useState(null);
+const faqs = [
+  {
+    id: 1,
+    question: "What time is check-in and check-out?",
+    answer:
+      "Check-in is from 3:00 PM to 11:00 PM, and check-out is before 12:00 PM. Early check-in and late check-out may be available upon request with additional fees.",
+    category: "checkin",
+    icon: Clock,
+  },
+  {
+    id: 2,
+    question: "Is breakfast included in the room rate?",
+    answer:
+      "Continental breakfast is included for all our premium rooms. Standard rooms can add breakfast for an additional $15 per person per day. Our breakfast is served from 7:00 AM to 10:30 AM.",
+    category: "amenities",
+    icon: Info,
+  },
+  {
+    id: 3,
+    question: "Do you provide airport transportation?",
+    answer:
+      "Yes, we offer complimentary airport shuttle service. The shuttle runs every 30 minutes during peak hours (6 AM - 10 PM) and hourly during off-peak times. Please inform us of your arrival time at least 2 hours in advance.",
+    category: "transport",
+    icon: CheckCircle,
+  },
+  {
+    id: 4,
+    question: "Is WiFi free in the rooms?",
+    answer:
+      "Yes, high-speed WiFi is complimentary throughout the hotel, including all guest rooms, lobby, restaurant, and common areas. We also offer premium WiFi for business travelers requiring enhanced bandwidth.",
+    category: "amenities",
+    icon: CheckCircle,
+  },
+  {
+    id: 5,
+    question: "What is your cancellation policy?",
+    answer:
+      "You can cancel your reservation free of charge up to 24 hours before your scheduled arrival. Cancellations made within 24 hours will incur a charge equal to 50% of the first night's rate. No-show bookings will be charged the full amount.",
+    category: "policy",
+    icon: AlertCircle,
+  },
+  {
+    id: 6,
+    question: "Are pets allowed in the rooms?",
+    answer:
+      "We welcome small pets (under 25 lbs) with an additional fee of $25 per night. Please inform us in advance if you're traveling with a pet. Service animals are always welcome at no additional charge.",
+    category: "policy",
+    icon: Info,
+  },
+  {
+    id: 7,
+    question: "Do you have parking facilities?",
+    answer:
+      "Yes, we offer both self-parking ($15/night) and valet parking ($25/night). Electric vehicle charging stations are available in our parking garage at no additional cost for guests.",
+    category: "amenities",
+    icon: CheckCircle,
+  },
+  {
+    id: 8,
+    question: "Can I request extra amenities for my room?",
+    answer:
+      "Absolutely! We can provide extra pillows, blankets, toiletries, and other amenities upon request. Special occasion setups like flowers, champagne, or birthday decorations can be arranged with advance notice.",
+    category: "amenities",
+    icon: CheckCircle,
+  },
+];
 
-  const faqs = [
-    {
-      id: 1,
-      question: "What time is check-in and check-out?",
-      answer:
-        "Check-in is from 3:00 PM to 11:00 PM, and check-out is before 12:00 PM. Early check-in and late check-out may be available upon request with additional fees.",
-      category: "checkin",
-      icon: Clock,
-    },
-    {
-      id: 2,
-      question: "Is breakfast included in the room rate?",
-      answer:
-        "Continental breakfast is included for all our premium rooms. Standard rooms can add breakfast for an additional $15 per person per day. Our breakfast is served from 7:00 AM to 10:30 AM.",
-      category: "amenities",
-      icon: Info,
-    },
-    {
-      id: 3,
-      question: "Do you provide airport transportation?",
-      answer:
-        "Yes, we offer complimentary airport shuttle service. The shuttle runs every 30 minutes during peak hours (6 AM - 10 PM) and hourly during off-peak times. Please inform us of your arrival time at least 2 hours in advance.",
-      category: "transport",
-      icon: CheckCircle,
-    },
-    {
-      id: 4,
-      question: "Is WiFi free in the rooms?",
-      answer:
-        "Yes, high-speed WiFi is complimentary throughout the hotel, including all guest rooms, lobby, restaurant, and common areas. We also offer premium WiFi for business travelers requiring enhanced bandwidth.",
-      category: "amenities",
-      icon: CheckCircle,
-    },
-    {
-      id: 5,
-      question: "What is your cancellation policy?",
-      answer:
-        "You can cancel your reservation free of charge up to 24 hours before your scheduled arrival. Cancellations made within 24 hours will incur a charge equal to 50% of the first night's rate. No-show bookings will be charged the full amount.",
-      category: "policy",
-      icon: AlertCircle,
-    },
-    {
-      id: 6,
-      question: "Are pets allowed in the rooms?",
-      answer:
-        "We welcome small pets (under 25 lbs) with an additional fee of $25 per night. Please inform us in advance if you're traveling with a pet. Service animals are always welcome at no additional charge.",
-      category: "policy",
-      icon: Info,
-    },
-    {
-      id: 7,
-      question: "Do you have parking facilities?",
-      answer:
-        "Yes, we offer both self-parking ($15/night) and valet parking ($25/night). Electric vehicle charging stations are available in our parking garage at no additional cost for guests.",
-      category: "amenities",
-      icon: CheckCircle,
-    },
-    {
-      id: 8,
-      question: "Can I request extra amenities for my room?",
-      answer:
-        "Absolutely! We can provide extra pillows, blankets, toiletries, and other amenities upon request. Special occasion setups like flowers, champagne, or birthday decorations can be arranged with advance notice.",
-      category: "amenities",
-      icon: CheckCircle,
-    },
-  ];
+const RoomFAQs = () => {
+  const [expandedFAQ, setExpandedFAQ] = useState(null);
 
   const toggleFAQ = (faqId) => {
     setExpandedFAQ(expandedFAQ === faqId ? null : faqId);
@@ -134,13 +134,13 @@ const RoomFAQs = ({ room }) => {
           return (
             <div
               key={faq.id}
-              className={`border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 ${
+              className={`border border-gray-200 rounded-2xl overflow-hidden transition duration-300 ${
                 isExpanded ? "shadow-md" : "hover:shadow-sm"
               }`}
             >
               <button
                 onClick={() => toggleFAQ(faq.id)}
-                className="w-full p-5 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="w-full p-5 text-left flex items-center justify-between hover:bg-gray-50 transition duration-300"
               >
                 <div className="flex items-center gap-4 flex-1">
                   <div
@@ -164,8 +164,8 @@ const RoomFAQs = ({ room }) => {
               </button>
 
               {isExpanded && (
-                <div className="px-5 pb-5 pt-0">
-                  <div className="ml-12 pl-4 border-l-2 border-yellow-200">
+                <div className="p-5 pt-2">
+                  <div className="ml-12">
                     <p className="text-gray-600 leading-relaxed">
                       {faq.answer}
                     </p>
@@ -192,7 +192,7 @@ const RoomFAQs = ({ room }) => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition duration-500">
             <Phone className="w-4 h-4" />
             Call Front Desk
           </button>

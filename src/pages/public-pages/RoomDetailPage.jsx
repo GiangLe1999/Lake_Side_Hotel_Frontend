@@ -29,8 +29,8 @@ const RoomDetailPage = () => {
           <div className="lg:col-span-2 space-y-8">
             <RoomImageGallery room={room} />
             <RoomInfo room={room} />
-            <RoomPolicies room={room} />
-            <RoomFAQs room={room} />
+            <RoomPolicies />
+            <RoomFAQs />
             <Reviews room={room} />
             <SimilarRooms currentRoom={room} />
           </div>

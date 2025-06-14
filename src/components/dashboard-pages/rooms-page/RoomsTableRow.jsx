@@ -47,10 +47,12 @@ const RoomsTableRow = ({ room, filteredRoomType, pageNo }) => {
     <>
       <tr key={room?.id} className="border-t border-gray-100">
         <td className="py-3 text-sm text-gray-600">#00{room?.id}</td>
+        <td className="py-3 text-sm text-gray-600">{room?.name}</td>
         <td className="py-3 text-sm text-gray-600">{room?.type}</td>
         <td className="py-3 text-sm text-gray-600">
           {formatPriceUSD(room?.price || null)}
         </td>
+        <td className="py-3 text-sm text-gray-600">{room?.occupancy}</td>
         <td className="py-3 text-sm text-gray-600">{room?.totalRooms}</td>
         <td className="py-3 text-sm text-gray-600">
           {formatDate(room?.createdAt || "", "dd/MM/yyyy")}

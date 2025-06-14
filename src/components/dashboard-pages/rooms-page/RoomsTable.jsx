@@ -66,9 +66,10 @@ const RoomsTable = () => {
           <thead>
             <tr className="text-left text-sm font-medium text-gray-500">
               <th className="pb-5">Room ID</th>
+              <th className="pb-5">Room Name</th>
               <th className="pb-5">Room Type</th>
               <th className="pb-5">Room Price</th>
-              <th className="pb-5">Total Rooms</th>
+              <th className="pb-5">Occupancy</th>
               <th className="pb-5">Created At</th>
               <th className="pb-5 text-center">Actions</th>
             </tr>
