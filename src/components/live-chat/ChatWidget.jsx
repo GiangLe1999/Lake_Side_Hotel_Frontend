@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Send, Minimize2, X, User, Smile } from "lucide-react";
+import { Send, X, User, Smile, Paperclip } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import Message from "./Message";
-import FileUpload from "./FileUpload";
 import { toast } from "react-toastify";
 import { useChatContext } from "../../context/ChatContext";
 import { chatService } from "../../service/chat-service";
 import { useAuth } from "../../hooks/useAuth";
+import { uploadFileToS3 } from "../../utils/upload-file-to-s3";
 
 const ChatWidget = () => {
   const {
@@ -30,16 +30,19 @@ const ChatWidget = () => {
   });
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const { user } = useAuth();
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const { mutate: initializeChatMutation, isPending: initializeChatPending } =
     useMutation({
       mutationFn: chatService.initializeChat,
       onSuccess: (response) => {
         if (response?.status === 201) {
+          console.log(response?.data);
           setSessionId(response?.data?.sessionId);
           setMessages(response?.data?.messages || []);
           setIsInitialized(true);
@@ -116,7 +119,6 @@ const ChatWidget = () => {
 
     const roomId = sessionStorage.getItem("chat_room_id");
 
-    // Initialize chat for authenticated user
     initializeChatMutation({
       roomId: roomId ? parseInt(roomId) : null,
       guestName: guestInfo.name.trim(),
@@ -130,6 +132,7 @@ const ChatWidget = () => {
     const messageContent = inputMessage.trim();
     if (!messageContent && !selectedFile) return;
     if (!sessionId) return;
+    setIsSending(true);
 
     try {
       const messageType = selectedFile
@@ -138,12 +141,18 @@ const ChatWidget = () => {
           : "FILE"
         : "TEXT";
 
-      await chatService.sendMessage(
+      let fileUrl = null;
+      if (selectedFile) {
+        fileUrl = await uploadFileToS3(selectedFile, "chat");
+      }
+
+      sendWebSocketMessage("/app/chat/send", {
         sessionId,
-        messageContent,
+        content: messageContent,
         messageType,
-        selectedFile
-      );
+        fileUrl,
+        senderName: user ? null : guestInfo.name,
+      });
 
       // Clear input
       setInputMessage("");
@@ -160,6 +169,8 @@ const ChatWidget = () => {
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -185,6 +196,36 @@ const ChatWidget = () => {
         }
       }, 3000);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size must be less than 2MB");
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "application/pdf",
+      "text/plain",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("File type not supported");
+      return;
+    }
+
+    setSelectedFile(file);
   };
 
   if (!isOpen) return null;
@@ -270,42 +311,57 @@ const ChatWidget = () => {
         ) : (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {initializeChatPending && messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-gray-500">Loading chat...</div>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-gray-500">
-                    <Smile size={32} className="mx-auto mb-2 text-gray-400" />
-                    <p>Start a conversation!</p>
-                    <p className="text-xs">We're here to help you 24/7</p>
+            <div className="relative flex-1 overflow-y-auto pt-4 space-y-2 max-h-[264px]">
+              <div className="px-4">
+                {initializeChatPending && messages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-gray-500">Loading chat...</div>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-gray-500">
+                      <Smile size={32} className="mx-auto mb-2 text-gray-400" />
+                      <p>Start a conversation!</p>
+                      <p className="text-xs">We're here to help you 24/7</p>
+                    </div>
+                  </div>
+                ) : (
+                  messages.map((message, index) => (
+                    <Message
+                      key={message.id || index}
+                      message={message}
+                      isOwn={message.senderType === "USER"}
+                    />
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {selectedFile && (
+                <div className="sticky bottom-0 bg-white p-4 z-10 border-t border-[#eaeaea]">
+                  <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-orange-800 truncate">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-orange-600">
+                        {(selectedFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-orange-600 hover:text-orange-800"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
                 </div>
-              ) : (
-                messages.map((message, index) => (
-                  <Message
-                    key={message.id || index}
-                    message={message}
-                    isOwn={message.senderType === "USER"}
-                  />
-                ))
               )}
-              <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
             <div className="border-t border-gray-200 p-4">
-              {selectedFile && (
-                <div className="mb-2">
-                  <FileUpload
-                    selectedFile={selectedFile}
-                    onRemoveFile={() => setSelectedFile(null)}
-                  />
-                </div>
-              )}
-
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center space-x-2"
@@ -322,18 +378,35 @@ const ChatWidget = () => {
                   />
                 </div>
 
-                <FileUpload
-                  onFileSelect={setSelectedFile}
-                  selectedFile={selectedFile}
-                  onRemoveFile={() => setSelectedFile(null)}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*,.pdf,.txt,.doc,.docx"
                 />
 
                 <button
-                  type="submit"
-                  disabled={!inputMessage.trim() && !selectedFile}
-                  className="main-btn h-[38px] aspect-square shrink-0 !rounded-lg isabled:opacity-50"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-gray-500 border border-gray-300 rounded-lg hover:text-yellow-500 transition duration-500"
+                  title="Attach file"
                 >
-                  <Send size={16} />
+                  <Paperclip size={20} />
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    (!inputMessage.trim() && !selectedFile) || isSending
+                  }
+                  className="main-btn h-[38px] aspect-square shrink-0 !rounded-lg disabled:opacity-50"
+                >
+                  {isSending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white-500 mr-1"></div>
+                  ) : (
+                    <Send size={16} />
+                  )}
                 </button>
               </form>
             </div>

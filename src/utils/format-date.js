@@ -11,6 +11,9 @@ function formatDate(dateString, formatType = "dd/MM/yyyy HH:mm:ss") {
   const minutes = pad(date.getMinutes());
   const seconds = pad(date.getSeconds());
 
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const hour12 = pad(hours % 12 === 0 ? 12 : hours % 12);
+
   switch (formatType) {
     case "dd/MM/yyyy":
       return `${day}/${month}/${year}`;
@@ -28,6 +31,9 @@ function formatDate(dateString, formatType = "dd/MM/yyyy HH:mm:ss") {
       return `${hours}:${minutes}:${seconds}`;
     case "HH:mm":
       return `${hours}:${minutes}`;
+    case "hh:mm a":
+      // Ví dụ: 09:30 AM 14/06
+      return `${hour12}:${minutes} ${ampm}`;
     default:
       // Nếu không đúng định dạng trên, trả về ISO string rút gọn
       return date.toISOString();

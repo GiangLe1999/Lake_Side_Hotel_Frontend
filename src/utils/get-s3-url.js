@@ -1,18 +1,9 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-const region = import.meta.env.VITE_AWS_REGION;
-const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
-const secretAccessKey = import.meta.env.VITE_AWS_SECRET_KEY;
-const bucketName = import.meta.env.VITE_AWS_S3_BUCKET;
+import { s3Client } from "./s3-client";
 
-// Cấu hình S3 Client
-const s3Client = new S3Client({
-  region: region || "us-east-1",
-  credentials: {
-    accessKeyId,
-    secretAccessKey: secretAccessKey,
-  },
-});
+const bucketName = import.meta.env.VITE_AWS_S3_BUCKET;
+const region = import.meta.env.VITE_AWS_REGION;
 
 /**
  * Dùng getS3Url khi Bucket hoặc object không public:
