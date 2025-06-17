@@ -14,6 +14,7 @@ import GoogleCallback from "./components/wrapper/GoogleCallback";
 import RoomsListingPage from "./pages/public-pages/RoomListingPage";
 import LiveChatButton from "./components/live-chat/LiveChatButton";
 import ChatWidget from "./components/live-chat/ChatWidget";
+import DashboardCustomerSupportPage from "./pages/dashboard-pages/DashboardCustomerSupport";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="rooms" element={<DashboardRoomsPage />} />
             <Route path="rooms/:id" element={<DashboardEditRoomPage />} />
             <Route path="add-room" element={<DashboardAddRoomPage />} />
+            <Route path="chat" element={<DashboardCustomerSupportPage />} />
           </Route>
 
           {/* OAuth callback route */}

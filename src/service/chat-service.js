@@ -15,6 +15,14 @@ export const chatService = {
     return response.data;
   },
 
+  // Get conversations
+  getConversations: async ({ pageNo, pageSize, search, sortBy, status }) => {
+    const response = await apiClient.get(
+      `/chat/admin/conversations?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}&sortBy=${sortBy}&status=${status}`
+    );
+    return response.data;
+  },
+
   // Get conversation messages
   getMessages: async (conversationId, page = 0, size = 50) => {
     const response = await apiClient.get(

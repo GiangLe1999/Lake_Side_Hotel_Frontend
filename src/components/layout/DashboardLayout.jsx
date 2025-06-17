@@ -7,6 +7,7 @@ import {
   Home,
   LogOut,
   Menu,
+  MessageSquareMore,
   Plus,
   Settings,
   User,
@@ -42,6 +43,13 @@ const DashboardLayout = () => {
       label: "Bookings",
       icon: Calendar,
       path: "/dashboard/bookings",
+    },
+    { id: "guests", label: "Guests", icon: Users, path: "/dashboard/guests" },
+    {
+      id: "customer-support",
+      label: "Customer Support",
+      icon: MessageSquareMore,
+      path: "/dashboard/chat",
     },
     { id: "guests", label: "Guests", icon: Users, path: "/dashboard/guests" },
     {

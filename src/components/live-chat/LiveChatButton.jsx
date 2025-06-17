@@ -1,9 +1,11 @@
 import React from "react";
 import { MessageCircle, X } from "lucide-react";
 import { useChatContext } from "../../context/ChatContext";
+import { useAuth } from "../../hooks/useAuth";
 
 const LiveChatButton = ({ roomId = null, className = "" }) => {
   const { isOpen, openChat, closeChat, unreadCount } = useChatContext();
+  const { user } = useAuth();
 
   const handleClick = () => {
     if (isOpen) {
@@ -12,6 +14,10 @@ const LiveChatButton = ({ roomId = null, className = "" }) => {
       openChat(roomId);
     }
   };
+
+  if (user?.role === "ADMIN") {
+    return null;
+  }
 
   return (
     <button
