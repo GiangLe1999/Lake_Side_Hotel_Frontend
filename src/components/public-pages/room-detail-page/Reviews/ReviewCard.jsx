@@ -51,7 +51,10 @@ const ReviewCard = ({ review }) => {
         </div>
       )}
 
-      <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words mt-2 text-sm">
+      <p
+        className="text-gray-600 leading-relaxed mt-2 text-sm"
+        style={{ wordBreak: "break-all" }}
+      >
         {review?.comment}
       </p>
     </div>

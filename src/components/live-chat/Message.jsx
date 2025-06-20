@@ -51,7 +51,9 @@ const Message = ({ message, isOwn }) => {
         )}
         {renderMessageContent()}
         <div className="px-4 py-2">
-          <p className="text-sm">{message.content}</p>
+          <p className="text-sm max-w-full" style={{ wordBreak: "break-all" }}>
+            {message.content}
+          </p>
           <p
             className={`text-[10px] mt-1 ${
               isOwn ? "text-orange-100" : "text-gray-500"

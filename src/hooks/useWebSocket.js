@@ -44,7 +44,6 @@ export const useWebSocket = (sessionId, onMessageReceived, onTyping) => {
       // Subscribe to typing indicators
       client.subscribe(`/topic/chat/${sessionId}/typing`, (message) => {
         const typingMessage = JSON.parse(message.body);
-        console.log(typingMessage);
         if (typingMessage) {
           onTyping(typingMessage);
         }

@@ -91,12 +91,12 @@ const AdminChatDashboard = () => {
     setSelectedConversation(conversation);
 
     // Mark conversation as read if it has unread messages
-    if (conversation.unreadCount > 0) {
-      // Call API to mark as read
-      chatService.markAsRead(conversation.sessionId).then(() => {
-        refetchConversations();
-      });
-    }
+    // if (conversation.unreadCount > 0) {
+    //   // Call API to mark as read
+    //   chatService.markAsRead(conversation.sessionId).then(() => {
+    //     refetchConversations();
+    //   });
+    // }
   };
 
   return (

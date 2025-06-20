@@ -8,6 +8,7 @@ import { useChatContext } from "../../context/ChatContext";
 import { chatService } from "../../service/chat-service";
 import { useAuth } from "../../hooks/useAuth";
 import { uploadFileToS3 } from "../../utils/upload-file-to-s3";
+import TypingIndicator from "../common/TypingIndicator";
 
 const ChatWidget = () => {
   const {
@@ -31,11 +32,16 @@ const ChatWidget = () => {
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [typingIndicator, setTypingIndicator] = useState({
+    senderName: "",
+    typing: false,
+  });
   const { user } = useAuth();
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const { mutate: initializeChatMutation, isPending: initializeChatPending } =
     useMutation({
@@ -60,6 +66,10 @@ const ChatWidget = () => {
       },
     });
 
+  const handleWebSocketTyping = useCallback((message) => {
+    setTypingIndicator(message);
+  }, []);
+
   // Initialize WebSocket connection
   const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocket(
     sessionId,
@@ -72,7 +82,8 @@ const ChatWidget = () => {
         }, 100);
       },
       [addMessage]
-    )
+    ),
+    handleWebSocketTyping
   );
 
   // Auto-scroll to bottom when messages change
@@ -124,8 +135,6 @@ const ChatWidget = () => {
       guestEmail: guestInfo.email.trim() || null,
     });
   };
-
-  console.log(guestInfo);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -186,15 +195,16 @@ const ChatWidget = () => {
         senderName: user ? user?.fullName : guestInfo.name,
       });
 
-      // Stop typing indicator after 3 seconds
-      setTimeout(() => {
-        if (isTyping) {
-          sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
-            typing: false,
-            senderName: user ? user?.fullName : guestInfo.name,
-          });
-          setIsTyping(false);
-        }
+      // Clear timeout cũ mỗi lần gõ
+      clearTimeout(typingTimeoutRef.current);
+
+      // Set timeout mới: sau 3s ngừng gõ thì gửi typing: false
+      typingTimeoutRef.current = setTimeout(() => {
+        sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
+          typing: false,
+          senderName: "ADMIN",
+        });
+        setIsTyping(false);
       }, 3000);
     }
   };
@@ -229,12 +239,14 @@ const ChatWidget = () => {
     setSelectedFile(file);
   };
 
+  console.log(typingIndicator);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-22 right-6 w-80 h-[408px] bg-white rounded-lg shadow-2xl z-50 flex flex-col">
+    <div className="fixed bottom-22 right-6 w-96 bg-white rounded-lg shadow-2xl z-50 flex flex-col max-h-[70vh] min-h-[400px]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-4 rounded-t-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-4 rounded-t-lg flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
             <User size={16} />
@@ -248,17 +260,17 @@ const ChatWidget = () => {
         </div>
         <button
           onClick={closeChat}
-          className="text-white/80 hover:text-white transition-colors"
+          className="text-white/80 hover:text-white transition-colors flex-shrink-0"
         >
           <X size={20} />
         </button>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {showGuestForm ? (
           /* Guest Information Form */
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 overflow-y-auto">
             <div className="text-center">
               <h4 className="font-semibold text-gray-800 mb-2">
                 Welcome to Live Support!
@@ -311,15 +323,15 @@ const ChatWidget = () => {
           </div>
         ) : (
           <>
-            {/* Messages */}
-            <div className="relative flex-1 overflow-y-auto pt-4 space-y-2 max-h-[264px]">
-              <div className="px-4">
+            {/* Messages Container */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="p-4 space-y-2">
                 {initializeChatPending && messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center h-32">
                     <div className="text-gray-500">Loading chat...</div>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center h-32">
                     <div className="text-center text-gray-500">
                       <Smile size={32} className="mx-auto mb-2 text-gray-400" />
                       <p>Start a conversation!</p>
@@ -337,32 +349,41 @@ const ChatWidget = () => {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-
-              {selectedFile && (
-                <div className="sticky bottom-0 bg-white p-4 z-10 border-t border-[#eaeaea]">
-                  <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-orange-800 truncate">
-                        {selectedFile.name}
-                      </p>
-                      <p className="text-xs text-orange-600">
-                        {(selectedFile.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFile(null)}
-                      className="text-orange-600 hover:text-orange-800"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Input */}
-            <div className="border-t border-gray-200 p-4">
+            {/* Selected File Preview */}
+            {selectedFile && (
+              <div className="px-4 pb-2 flex-shrink-0">
+                <div className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-orange-800 truncate">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-orange-600">
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFile(null)}
+                    className="text-orange-600 hover:text-orange-800 flex-shrink-0"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Typing Indicator */}
+            {typingIndicator.typing &&
+              typingIndicator.senderName === "ADMIN" && (
+                <div className="flex-shrink-0">
+                  <TypingIndicator senderName="Admin" isAdmin={true} />
+                </div>
+              )}
+
+            {/* Input Area */}
+            <div className="border-t border-gray-200 p-4 flex-shrink-0">
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center space-x-2"
@@ -374,7 +395,7 @@ const ChatWidget = () => {
                     value={inputMessage}
                     onChange={handleInputChange}
                     placeholder="Type your message..."
-                    className="main-input !py-2 h-10 !rounded-lg resize-none text-sm"
+                    className="main-input !py-2 h-10 !rounded-lg resize-none text-sm w-full"
                     disabled={false}
                   />
                 </div>
@@ -390,7 +411,7 @@ const ChatWidget = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-gray-500 border border-gray-300 rounded-lg hover:text-yellow-500 transition duration-500"
+                  className="p-2 text-gray-500 border border-gray-300 rounded-lg hover:text-yellow-500 transition duration-500 flex-shrink-0"
                   title="Attach file"
                 >
                   <Paperclip size={20} />
@@ -404,7 +425,7 @@ const ChatWidget = () => {
                   className="main-btn h-[38px] aspect-square shrink-0 !rounded-lg disabled:opacity-50"
                 >
                   {isSending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white-500 mr-1"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white-500"></div>
                   ) : (
                     <Send size={16} />
                   )}

@@ -16,6 +16,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useWebSocket } from "../../../hooks/useWebSocket";
 import { uploadFileToS3 } from "../../../utils/upload-file-to-s3";
 import { toast } from "react-toastify";
+import TypingIndicator from "../../common/TypingIndicator";
 
 const ChatArea = ({
   selectedConversation,
@@ -30,7 +31,7 @@ const ChatArea = ({
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [typingIndicator, setTypingIndicator] = useState({
-    senderName: "ADMIN",
+    senderName: "",
     typing: false,
   });
 
@@ -38,6 +39,7 @@ const ChatArea = ({
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const lastScrollHeight = useRef(0);
 
   // Fetch messages với infinite query
@@ -129,7 +131,6 @@ const ChatArea = ({
   // Reset khi chuyển conversation
   useEffect(() => {
     setShouldScrollToBottom(true);
-    setMessages([]);
     lastScrollHeight.current = 0;
   }, [selectedConversation?.sessionId]);
 
@@ -141,14 +142,12 @@ const ChatArea = ({
     }, 100);
   }, []);
 
-  const handleWebSocketTyping = useCallback((message) => {
-    setTypingIndicator(message);
-  }, []);
-
   const { sendMessage: sendWebSocketMessage } = useWebSocket(
     selectedConversation?.sessionId,
     handleWebSocketMessage,
-    handleWebSocketTyping
+    (message) => {
+      setTypingIndicator(message);
+    }
   );
 
   const handleSendMessage = async (e) => {
@@ -214,15 +213,16 @@ const ChatArea = ({
         senderName: "ADMIN",
       });
 
-      // Stop typing indicator after 3 seconds
-      setTimeout(() => {
-        if (isTyping) {
-          sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
-            typing: false,
-            senderName: "ADMIN",
-          });
-          setIsTyping(false);
-        }
+      // Clear timeout cũ mỗi lần gõ
+      clearTimeout(typingTimeoutRef.current);
+
+      // Set timeout mới: sau 3s ngừng gõ thì gửi typing: false
+      typingTimeoutRef.current = setTimeout(() => {
+        sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
+          typing: false,
+          senderName: "ADMIN",
+        });
+        setIsTyping(false);
       }, 3000);
     }
   };
@@ -355,7 +355,7 @@ const ChatArea = ({
               </div>
             ) : (
               <>
-                {messages.map((message) => (
+                {messages?.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${
@@ -380,7 +380,12 @@ const ChatArea = ({
                       {renderMessageContent(message)}
 
                       {message.content && (
-                        <p className="text-sm mb-1">{message.content}</p>
+                        <p
+                          className="text-sm mb-1"
+                          style={{ wordBreak: "break-all" }}
+                        >
+                          {message.content}
+                        </p>
                       )}
 
                       <div className="flex items-center justify-between">
@@ -405,14 +410,12 @@ const ChatArea = ({
             )}
           </div>
 
+          {/* Typing Indicator */}
           {typingIndicator.typing && typingIndicator.senderName !== "ADMIN" && (
-            <div className={"flex justify-start"}>
-              <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-gray-200 text-gray-800">
-                <p className="text-xs font-semibold mb-1 text-gray-600">
-                  {typingIndicator.senderName} + "is typing..."
-                </p>
-              </div>
-            </div>
+            <TypingIndicator
+              senderName={typingIndicator.senderName}
+              isAdmin={false}
+            />
           )}
 
           {/* File Preview */}
