@@ -24,7 +24,7 @@ function formatDate(dateString, formatType = "dd/MM/yyyy HH:mm:ss") {
     case "yyyy-MM-dd":
       return `${year}-${month}-${day}`;
     case "dd/MM/yyyy HH:mm":
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
+      return `${day}/${month}/${year} - ${hours}:${minutes}`;
     case "dd/MM/yyyy HH:mm:ss":
       return `${day}/${month}/${year} - ${hours}:${minutes}:${seconds}`;
     case "HH:mm:ss":

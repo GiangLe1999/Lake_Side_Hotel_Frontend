@@ -32,12 +32,15 @@ export const ChatProvider = ({ children }) => {
     setIsOpen(false);
   }, []);
 
-  const addMessage = useCallback((message) => {
-    setMessages((prev) => [...prev, message]);
-    if (message.senderType !== "USER") {
-      setUnreadCount((prev) => prev + 1);
-    }
-  }, []);
+  const addMessage = useCallback(
+    (message) => {
+      setMessages((prev) => [...prev, message]);
+      if (message.senderType !== "USER" && !isOpen) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    },
+    [isOpen]
+  );
 
   const clearUnreadCount = useCallback(() => {
     setUnreadCount(0);

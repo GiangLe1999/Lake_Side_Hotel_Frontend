@@ -46,10 +46,8 @@ const Message = ({ message, isOwn }) => {
           isOwn ? "bg-[#e06c00] text-white" : "bg-gray-200 text-gray-800"
         }`}
       >
-        {!isOwn && (
-          <p className="text-xs font-semibold mb-1 text-gray-600">
-            {message.senderName || "Support Agent"}
-          </p>
+        {!isOwn && message.messageType === "TEXT" && (
+          <p className="text-xs font-semibold text-gray-600 p-4 pb-0">ADMIN</p>
         )}
         {renderMessageContent()}
         <div className="px-4 py-2">

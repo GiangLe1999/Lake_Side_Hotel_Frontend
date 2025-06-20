@@ -1,4 +1,4 @@
-import AdminChatDashboard from "../../components/dashboard-pages/customer-support-page/admin-chat-dashboard";
+import AdminChatDashboard from "../../components/dashboard-pages/customer-support-page/AdminChatDashboard";
 
 const DashboardCustomerSupportPage = () => {
   return (

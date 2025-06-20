@@ -24,18 +24,15 @@ export const chatService = {
   },
 
   // Get conversation messages
-  getMessages: async (conversationId, page = 0, size = 50) => {
-    const response = await apiClient.get(
-      `/api/chat/${conversationId}/messages`,
-      {
-        params: { page, size },
-      }
-    );
+  getMessages: async ({ sessionId, pageNo = 0, pageSize = 20 }) => {
+    const response = await apiClient.get(`/chat/${sessionId}/messages`, {
+      params: { pageNo, pageSize },
+    });
     return response.data;
   },
 
   // Mark messages as read
   markMessagesAsRead: async (sessionId) => {
-    await apiClient.post(`/api/chat/${sessionId}/read`);
+    await apiClient.post(`/chat/${sessionId}/read`);
   },
 };

@@ -101,7 +101,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="min-h-screen mt-6 px-3">
+        <nav className="mt-6 px-3">
           {/* {filteredMenuItems.map((item) => { */}
           {menuItems.map((item) => {
             const isActive = currentPath === item.path;

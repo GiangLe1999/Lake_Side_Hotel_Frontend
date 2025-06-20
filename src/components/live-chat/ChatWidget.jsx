@@ -42,7 +42,6 @@ const ChatWidget = () => {
       mutationFn: chatService.initializeChat,
       onSuccess: (response) => {
         if (response?.status === 201) {
-          console.log(response?.data);
           setSessionId(response?.data?.sessionId);
           setMessages(response?.data?.messages || []);
           setIsInitialized(true);
@@ -79,7 +78,7 @@ const ChatWidget = () => {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isOpen]);
 
   // Initialize chat when widget opens
   useEffect(() => {
@@ -126,6 +125,8 @@ const ChatWidget = () => {
     });
   };
 
+  console.log(guestInfo);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
@@ -151,7 +152,7 @@ const ChatWidget = () => {
         content: messageContent,
         messageType,
         fileUrl,
-        senderName: user ? null : guestInfo.name,
+        senderName: user ? user?.fullName : guestInfo.name,
       });
 
       // Clear input
@@ -162,7 +163,7 @@ const ChatWidget = () => {
       if (isTyping) {
         sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
           typing: false,
-          senderName: guestInfo.name || "User",
+          senderName: user ? user?.fullName : guestInfo.name,
         });
         setIsTyping(false);
       }
@@ -182,7 +183,7 @@ const ChatWidget = () => {
       setIsTyping(true);
       sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
         typing: true,
-        senderName: guestInfo.name || "User",
+        senderName: user ? user?.fullName : guestInfo.name,
       });
 
       // Stop typing indicator after 3 seconds
@@ -190,7 +191,7 @@ const ChatWidget = () => {
         if (isTyping) {
           sendWebSocketMessage(`/app/chat/${sessionId}/typing`, {
             typing: false,
-            senderName: guestInfo.name || "User",
+            senderName: user ? user?.fullName : guestInfo.name,
           });
           setIsTyping(false);
         }

@@ -5,7 +5,7 @@ import SockJS from "sockjs-client";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export const useWebSocket = (sessionId, onMessageReceived) => {
+export const useWebSocket = (sessionId, onMessageReceived, onTyping) => {
   const [isConnected, setIsConnected] = useState(false);
   const stompClient = useRef(null);
 
@@ -14,9 +14,18 @@ export const useWebSocket = (sessionId, onMessageReceived) => {
   useEffect(() => {
     if (!sessionId) return;
 
+    const accessToken =
+      localStorage.getItem("access_token") ||
+      sessionStorage.getItem("access_token") ||
+      "";
+
     // Create WebSocket connection
     const client = new Client({
       webSocketFactory: () => new SockJS(`${apiUrl}/ws`),
+      // Thêm access token vào header để backend xử lý
+      connectHeaders: {
+        Authorization: accessToken ? `Bearer ${accessToken}` : "", // Gửi token trong header
+      },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -34,8 +43,11 @@ export const useWebSocket = (sessionId, onMessageReceived) => {
 
       // Subscribe to typing indicators
       client.subscribe(`/topic/chat/${sessionId}/typing`, (message) => {
-        const typingData = JSON.parse(message.body);
-        // Handle typing indicator
+        const typingMessage = JSON.parse(message.body);
+        console.log(typingMessage);
+        if (typingMessage) {
+          onTyping(typingMessage);
+        }
       });
     };
 
