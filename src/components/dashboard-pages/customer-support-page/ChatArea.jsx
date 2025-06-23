@@ -10,6 +10,10 @@ import {
   User,
   X,
   CheckCheck,
+  Lock,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { chatService } from "../../../service/chat-service";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -24,7 +28,6 @@ const ChatArea = ({
   setSelectedFile,
   inputMessage,
   setInputMessage,
-  refetchConversations,
 }) => {
   const [messages, setMessages] = useState([]);
   const [isSending, setIsSending] = useState(false);
@@ -42,6 +45,9 @@ const ChatArea = ({
   const typingTimeoutRef = useRef(null);
   const lastScrollHeight = useRef(0);
 
+  // Check if conversation is resolved
+  const isResolved = selectedConversation?.status === "RESOLVED";
+
   // Fetch messages với infinite query
   const {
     data: messagesData,
@@ -49,7 +55,7 @@ const ChatArea = ({
     hasNextPage,
     isFetchingNextPage,
     isLoading: messagesLoading,
-    refetch: refetchMessages,
+    // refetch: refetchMessages,
   } = useInfiniteQuery({
     queryKey: ["messages", selectedConversation?.sessionId],
     queryFn: ({ pageParam = 0 }) =>
@@ -153,6 +159,12 @@ const ChatArea = ({
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
+    // Prevent sending if conversation is resolved
+    if (isResolved) {
+      toast.warning("Cannot send messages to a resolved conversation.");
+      return;
+    }
+
     const messageContent = inputMessage.trim();
     if (!messageContent && !selectedFile) return;
     if (!selectedConversation) return;
@@ -201,6 +213,9 @@ const ChatArea = ({
   };
 
   const handleInputChange = (e) => {
+    // Prevent typing if conversation is resolved
+    if (isResolved) return;
+
     setInputMessage(e.target.value);
 
     const sessionId = selectedConversation?.sessionId;
@@ -228,6 +243,12 @@ const ChatArea = ({
   };
 
   const handleFileSelect = (e) => {
+    // Prevent file selection if conversation is resolved
+    if (isResolved) {
+      toast.warning("Cannot attach files to a resolved conversation.");
+      return;
+    }
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -297,47 +318,128 @@ const ChatArea = ({
     }
   };
 
+  const getStatusConfig = () => {
+    switch (selectedConversation?.status) {
+      case "RESOLVED":
+        return {
+          icon: CheckCircle,
+          color: "text-green-600",
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+          text: "Resolved",
+          description: "This conversation has been resolved",
+        };
+      case "ACTIVE":
+        return {
+          icon: Clock,
+          color: "text-blue-600",
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-200",
+          text: "Active",
+          description: "This conversation is active",
+        };
+      default:
+        return {
+          icon: AlertTriangle,
+          color: "text-orange-600",
+          bgColor: "bg-orange-50",
+          borderColor: "border-orange-200",
+          text: "Unknown",
+          description: "Status unknown",
+        };
+    }
+  };
+
+  const statusConfig = getStatusConfig();
+
   return (
     <div className="flex-1 flex flex-col">
       {selectedConversation ? (
         <>
           {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 bg-white">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User size={20} className="text-gray-600" />
+          <div
+            className={`p-4 border-b ${
+              isResolved
+                ? "bg-gray-50 border-gray-300"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div
+                    className={`w-10 h-10 ${
+                      isResolved ? "bg-gray-400" : "bg-gray-300"
+                    } rounded-full flex items-center justify-center`}
+                  >
+                    <User
+                      size={20}
+                      className={isResolved ? "text-gray-600" : "text-gray-600"}
+                    />
+                  </div>
+                  {selectedConversation.isOnline && !isResolved && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
                 </div>
-                {selectedConversation.isOnline && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                )}
+
+                <div>
+                  <h3
+                    className={`font-semibold ${
+                      isResolved ? "text-gray-600" : "text-gray-900"
+                    }`}
+                  >
+                    {selectedConversation.guestName || "Anonymous"}
+                  </h3>
+                  <div
+                    className={`flex items-center space-x-2 text-sm ${
+                      isResolved ? "text-gray-500" : "text-gray-500"
+                    }`}
+                  >
+                    {selectedConversation?.guestEmail}
+                    {selectedConversation.roomName && (
+                      <>
+                        <span>•</span>
+                        <span>{selectedConversation.roomName}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  {selectedConversation.guestName || "Anonymous"}
-                </h3>
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  {selectedConversation.isOnline ? (
-                    <span>Online</span>
-                  ) : (
-                    <span>Offline</span>
-                  )}
-                  {selectedConversation.roomName && (
-                    <>
-                      <span>•</span>
-                      <span>{selectedConversation.roomName}</span>
-                    </>
-                  )}
-                </div>
+              {/* Status Badge */}
+              <div
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-full ${statusConfig.bgColor} ${statusConfig.borderColor} border`}
+              >
+                <statusConfig.icon size={16} className={statusConfig.color} />
+                <span className={`text-sm font-medium ${statusConfig.color}`}>
+                  {statusConfig.text}
+                </span>
               </div>
             </div>
+
+            {/* Status Banner for Resolved Conversations */}
+            {isResolved && (
+              <div className="mt-3 p-3 bg-gray-100 border border-gray-200 rounded-lg flex items-center space-x-2">
+                <Lock size={16} className="text-gray-600" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">
+                    Conversation Resolved
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    This conversation has been marked as resolved. No new
+                    messages can be sent.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Messages */}
           <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4"
+            className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+              isResolved ? "bg-gray-25" : ""
+            }`}
           >
             {/* Loading indicator for fetching previous messages */}
             {isFetchingNextPage && (
@@ -359,20 +461,30 @@ const ChatArea = ({
                   <div
                     key={message.id}
                     className={`flex ${
-                      message.senderType === "ADMIN"
+                      message.senderType === "ADMIN" ||
+                      message.senderType === "SYSTEM"
                         ? "justify-end"
                         : "justify-start"
                     }`}
                   >
                     <div
                       className={`max-w-xs lg:max-w-md rounded-lg px-4 py-2 ${
-                        message.senderType === "ADMIN"
-                          ? "bg-blue-600 text-white"
+                        message.senderType === "ADMIN" ||
+                        message.senderType === "SYSTEM"
+                          ? isResolved
+                            ? "bg-gray-500 text-white"
+                            : "bg-blue-600 text-white"
+                          : isResolved
+                          ? "bg-gray-100 text-gray-700"
                           : "bg-gray-200 text-gray-800"
-                      }`}
+                      } ${isResolved ? "opacity-75" : ""}`}
                     >
                       {message.senderType === "USER" && (
-                        <p className="text-xs font-semibold mb-1 text-gray-600">
+                        <p
+                          className={`text-xs font-semibold mb-1 ${
+                            isResolved ? "text-gray-500" : "text-gray-600"
+                          }`}
+                        >
                           {message.senderName || "Guest"}
                         </p>
                       )}
@@ -391,13 +503,18 @@ const ChatArea = ({
                       <div className="flex items-center justify-between">
                         <p
                           className={`text-[11px] ${
-                            message.senderType === "ADMIN"
-                              ? "text-blue-100"
+                            message.senderType === "ADMIN" ||
+                            message.senderType === "SYSTEM"
+                              ? isResolved
+                                ? "text-gray-300"
+                                : "text-blue-100"
+                              : isResolved
+                              ? "text-gray-400"
                               : "text-gray-500"
                           }`}
                         >
                           {formatDate(
-                            message?.createdAt || "",
+                            message?.createdAt || new Date(),
                             "dd/MM/yyyy HH:mm"
                           )}
                         </p>
@@ -411,15 +528,17 @@ const ChatArea = ({
           </div>
 
           {/* Typing Indicator */}
-          {typingIndicator.typing && typingIndicator.senderName !== "ADMIN" && (
-            <TypingIndicator
-              senderName={typingIndicator.senderName}
-              isAdmin={false}
-            />
-          )}
+          {typingIndicator.typing &&
+            typingIndicator.senderName !== "ADMIN" &&
+            !isResolved && (
+              <TypingIndicator
+                senderName={typingIndicator.senderName}
+                isAdmin={false}
+              />
+            )}
 
           {/* File Preview */}
-          {selectedFile && (
+          {selectedFile && !isResolved && (
             <div className="p-4 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center space-x-2 p-3 bg-white rounded-lg border border-gray-200">
                 <div className="flex-1 min-w-0">
@@ -442,58 +561,97 @@ const ChatArea = ({
           )}
 
           {/* Message Input */}
-          <div className="p-4 border-t border-gray-200 bg-white">
-            <form
-              onSubmit={handleSendMessage}
-              className="flex items-center space-x-2"
-            >
-              <div className="flex-1">
-                <textarea
-                  ref={inputRef}
-                  value={inputMessage}
-                  onChange={handleInputChange}
-                  placeholder="Type your message..."
-                  className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  rows="1"
-                  style={{ minHeight: "50px", maxHeight: "120px" }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                className="hidden"
-                accept="image/*,.pdf,.txt,.doc,.docx"
-              />
-
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="h-[50px] w-[50px] grid place-items-center text-gray-500 border border-gray-300 rounded-lg hover:text-blue-600 hover:border-blue-300 transition-colors"
-                title="Attach file"
-              >
-                <Paperclip size={20} />
-              </button>
-
-              <button
-                type="submit"
-                disabled={(!inputMessage.trim() && !selectedFile) || isSending}
-                className="h-[50px] w-[50px] grid place-items-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isSending ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
+          <div
+            className={`p-4 border-t ${
+              isResolved
+                ? "bg-gray-50 border-gray-300"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            {isResolved ? (
+              /* Resolved State Input - Disabled */
+              <div className="flex items-center space-x-2 opacity-60">
+                <div className="flex-1">
+                  <div className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg flex items-center space-x-2 text-gray-500">
+                    <Lock size={16} />
+                    <span className="text-sm">
+                      This conversation has been resolved. You cannot send new
+                      messages.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled
+                  className="h-[50px] w-[50px] grid place-items-center text-gray-400 border border-gray-300 rounded-lg cursor-not-allowed"
+                  title="Cannot attach files to resolved conversation"
+                >
+                  <Paperclip size={20} />
+                </button>
+                <button
+                  type="button"
+                  disabled
+                  className="h-[50px] w-[50px] grid place-items-center bg-gray-400 text-white rounded-lg cursor-not-allowed"
+                >
                   <Send size={20} />
-                )}
-              </button>
-            </form>
+                </button>
+              </div>
+            ) : (
+              /* Active State Input - Normal */
+              <form
+                onSubmit={handleSendMessage}
+                className="flex items-center space-x-2"
+              >
+                <div className="flex-1">
+                  <textarea
+                    ref={inputRef}
+                    value={inputMessage}
+                    onChange={handleInputChange}
+                    placeholder="Type your message..."
+                    className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows="1"
+                    style={{ minHeight: "50px", maxHeight: "120px" }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
+                  />
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*,.pdf,.txt,.doc,.docx"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-[50px] w-[50px] grid place-items-center text-gray-500 border border-gray-300 rounded-lg hover:text-blue-600 hover:border-blue-300 transition-colors"
+                  title="Attach file"
+                >
+                  <Paperclip size={20} />
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    (!inputMessage.trim() && !selectedFile) || isSending
+                  }
+                  className="h-[50px] w-[50px] grid place-items-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSending ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    <Send size={20} />
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </>
       ) : (

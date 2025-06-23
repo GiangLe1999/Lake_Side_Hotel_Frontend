@@ -90,13 +90,12 @@ const AdminChatDashboard = () => {
   const handleConversationSelect = (conversation) => {
     setSelectedConversation(conversation);
 
-    // Mark conversation as read if it has unread messages
-    // if (conversation.unreadCount > 0) {
-    //   // Call API to mark as read
-    //   chatService.markAsRead(conversation.sessionId).then(() => {
-    //     refetchConversations();
-    //   });
-    // }
+    if (!conversation.isReadByAdmin) {
+      // Call API to mark as read
+      chatService.markConversationAsRead(conversation.sessionId).then(() => {
+        refetchConversations();
+      });
+    }
   };
 
   return (
@@ -119,8 +118,10 @@ const AdminChatDashboard = () => {
           lastConversationElementRef={lastConversationElementRef}
           handleConversationSelect={handleConversationSelect}
           selectedConversation={selectedConversation}
+          setSelectedConversation={setSelectedConversation}
           isFetchingNextPage={isFetchingNextPage}
           hasNextPage={hasNextPage}
+          refetchConversations={refetchConversations}
         />
       </div>
 
@@ -131,7 +132,6 @@ const AdminChatDashboard = () => {
         setSelectedFile={setSelectedFile}
         inputMessage={inputMessage}
         setInputMessage={setInputMessage}
-        refetchConversations={refetchConversations}
       />
     </div>
   );

@@ -23,6 +23,17 @@ export const chatService = {
     return response.data;
   },
 
+  markConversationAsRead: async (sessionId) => {
+    await apiClient.put(`/chat/admin/${sessionId}/read`);
+  },
+
+  toggleConversationStatus: async ({ sessionId, status }) => {
+    const response = await apiClient.put(
+      `/chat/admin/${sessionId}/status?status=${status}`
+    );
+    return response.data;
+  },
+
   // Get conversation messages
   getMessages: async ({ sessionId, pageNo = 0, pageSize = 20 }) => {
     const response = await apiClient.get(`/chat/${sessionId}/messages`, {
@@ -31,8 +42,8 @@ export const chatService = {
     return response.data;
   },
 
-  // Mark messages as read
-  markMessagesAsRead: async (sessionId) => {
-    await apiClient.post(`/chat/${sessionId}/read`);
+  deleteConversation: async (sessionId) => {
+    const response = await apiClient.delete(`/chat/admin/${sessionId}`);
+    return response.data;
   },
 };

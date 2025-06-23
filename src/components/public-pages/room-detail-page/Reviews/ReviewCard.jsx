@@ -1,7 +1,6 @@
-import { Calendar, Mail } from "lucide-react";
+import { Calendar, Mail, Star } from "lucide-react";
 import formatDate from "../../../../utils/format-date";
 import { maskEmail } from "../../../../utils/mask-email";
-import StarRating from "./StarRating";
 
 const ReviewCard = ({ review }) => {
   const getInitials = (name) => {
@@ -25,10 +24,17 @@ const ReviewCard = ({ review }) => {
           <div className="flex items-center justify-between mb-1">
             <h4 className="font-semibold text-gray-900 text-base truncate flex items-center gap-2">
               <p className="mr-1">{review?.user?.fullName}</p>
-              <StarRating
-                rating={review?.rating}
-                size="w-[14px] h-[14px] -mt-[1px]"
-              />
+
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-4 h-4 ${
+                    i < review?.rating
+                      ? "text-amber-400 fill-current"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
             </h4>
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <Calendar className="w-3 h-3" />
