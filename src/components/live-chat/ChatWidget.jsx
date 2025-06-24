@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Send, X, User, Smile, Paperclip } from "lucide-react";
+import {
+  Send,
+  X,
+  User,
+  Smile,
+  Paperclip,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import Message from "./Message";
@@ -36,6 +44,11 @@ const ChatWidget = () => {
     senderName: "",
     typing: false,
   });
+
+  // New states for conversation status
+  const [conversationStatus, setConversationStatus] = useState("ACTIVE"); // ACTIVE, RESOLVED, CLOSED
+  const [statusMessage, setStatusMessage] = useState("");
+
   const { user } = useAuth();
 
   const messagesEndRef = useRef(null);
@@ -51,6 +64,9 @@ const ChatWidget = () => {
           setSessionId(response?.data?.sessionId);
           setMessages(response?.data?.messages || []);
           setIsInitialized(true);
+          // Reset conversation status when initializing
+          setConversationStatus("ACTIVE");
+          setStatusMessage("");
         }
 
         if (!user) {
@@ -70,19 +86,43 @@ const ChatWidget = () => {
     setTypingIndicator(message);
   }, []);
 
+  // Enhanced message handler to process system messages
+  const handleIncomingMessage = useCallback(
+    (message) => {
+      // Check if it's a system message
+      if (message.messageType === "SYSTEM_MESSAGE") {
+        const content = message.content?.toLowerCase() || "";
+
+        if (content.includes("marked as resolved")) {
+          setConversationStatus("RESOLVED");
+          setStatusMessage("This conversation has been resolved by admin.");
+          toast.success("Conversation has been resolved by admin");
+        } else if (content.includes("reactivated")) {
+          setConversationStatus("ACTIVE");
+          setStatusMessage("");
+          toast.success("Conversation has been reactivated");
+        } else if (content.includes("closed")) {
+          setConversationStatus("CLOSED");
+          setStatusMessage("This conversation has been closed by admin.");
+          toast.error("Conversation has been closed by admin");
+        }
+      }
+
+      // Add message to chat
+      addMessage(message);
+
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    },
+    [addMessage]
+  );
+
   // Initialize WebSocket connection
   const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocket(
     sessionId,
-    useCallback(
-      (message) => {
-        addMessage(message);
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-      },
-      [addMessage]
-    ),
+    handleIncomingMessage,
     handleWebSocketTyping
   );
 
@@ -142,6 +182,14 @@ const ChatWidget = () => {
     const messageContent = inputMessage.trim();
     if (!messageContent && !selectedFile) return;
     if (!sessionId) return;
+
+    // Prevent sending if conversation is closed or resolved
+    if (conversationStatus === "CLOSED" || conversationStatus === "RESOLVED") {
+      const status = conversationStatus === "CLOSED" ? "closed" : "resolved";
+      toast.error(`Cannot send message. Conversation has been ${status}.`);
+      return;
+    }
+
     setIsSending(true);
 
     try {
@@ -187,6 +235,10 @@ const ChatWidget = () => {
   const handleInputChange = (e) => {
     setInputMessage(e.target.value);
 
+    // Don't send typing indicator if conversation is closed or resolved
+    if (conversationStatus === "CLOSED" || conversationStatus === "RESOLVED")
+      return;
+
     // Send typing indicator
     if (!isTyping && sessionId) {
       setIsTyping(true);
@@ -212,6 +264,13 @@ const ChatWidget = () => {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Prevent file selection if conversation is closed or resolved
+    if (conversationStatus === "CLOSED" || conversationStatus === "RESOLVED") {
+      const status = conversationStatus === "CLOSED" ? "closed" : "resolved";
+      toast.error(`Cannot attach file. Conversation has been ${status}.`);
+      return;
+    }
 
     // Validate file size (2MB limit)
     if (file.size > 2 * 1024 * 1024) {
@@ -239,7 +298,50 @@ const ChatWidget = () => {
     setSelectedFile(file);
   };
 
-  console.log(typingIndicator);
+  // Function to get status display info
+  const getStatusDisplayInfo = () => {
+    switch (conversationStatus) {
+      case "RESOLVED":
+        return {
+          icon: <CheckCircle size={16} className="text-green-600" />,
+          bgColor: "bg-green-50",
+          textColor: "text-green-800",
+          borderColor: "border-green-200",
+        };
+      case "CLOSED":
+        return {
+          icon: <X size={16} className="text-red-600" />,
+          bgColor: "bg-red-50",
+          textColor: "text-red-800",
+          borderColor: "border-red-200",
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Function to get disabled message based on status
+  const getDisabledMessage = () => {
+    switch (conversationStatus) {
+      case "RESOLVED":
+        return {
+          title: "Conversation Resolved",
+          description: "This conversation has been marked as resolved",
+        };
+      case "CLOSED":
+        return {
+          title: "Chat is currently unavailable",
+          description: "This conversation has been closed",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const statusInfo = getStatusDisplayInfo();
+  const disabledMessage = getDisabledMessage();
+  const isInputDisabled =
+    conversationStatus === "CLOSED" || conversationStatus === "RESOLVED";
 
   if (!isOpen) return null;
 
@@ -265,6 +367,20 @@ const ChatWidget = () => {
           <X size={20} />
         </button>
       </div>
+
+      {/* Conversation Status Banner */}
+      {statusInfo && statusMessage && (
+        <div
+          className={`px-4 py-2 border-b ${statusInfo.bgColor} ${statusInfo.borderColor} flex-shrink-0`}
+        >
+          <div className="flex items-center space-x-2">
+            {statusInfo.icon}
+            <p className={`text-sm font-medium ${statusInfo.textColor}`}>
+              {statusMessage}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 flex flex-col min-h-0">
@@ -383,54 +499,77 @@ const ChatWidget = () => {
               )}
 
             {/* Input Area */}
-            <div className="border-t border-gray-200 p-4 flex-shrink-0">
-              <form
-                onSubmit={handleSendMessage}
-                className="flex items-center space-x-2"
-              >
-                <div className="flex-1">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputMessage}
-                    onChange={handleInputChange}
-                    placeholder="Type your message..."
-                    className="main-input !py-2 h-10 !rounded-lg resize-none text-sm w-full"
-                    disabled={false}
-                  />
+            <div
+              className={`border-t border-gray-200 p-4 flex-shrink-0 ${
+                isInputDisabled ? "bg-gray-50 rounded-b-lg" : ""
+              }`}
+            >
+              {isInputDisabled && disabledMessage ? (
+                // Disabled input area for closed/resolved conversations
+                <div className="flex items-center justify-center py-4">
+                  <div className="text-center text-gray-500">
+                    <AlertCircle
+                      size={24}
+                      className="mx-auto mb-2 text-gray-400"
+                    />
+                    <p className="text-sm font-medium">
+                      {disabledMessage.title}
+                    </p>
+                    <p className="text-xs">{disabledMessage.description}</p>
+                  </div>
                 </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept="image/*,.pdf,.txt,.doc,.docx"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-gray-500 border border-gray-300 rounded-lg hover:text-yellow-500 transition duration-500 flex-shrink-0"
-                  title="Attach file"
+              ) : (
+                <form
+                  onSubmit={handleSendMessage}
+                  className="flex items-center space-x-2"
                 >
-                  <Paperclip size={20} />
-                </button>
+                  <div className="flex-1">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={inputMessage}
+                      onChange={handleInputChange}
+                      placeholder="Type your message..."
+                      className="main-input !py-2 h-10 !rounded-lg resize-none text-sm w-full"
+                      disabled={isInputDisabled}
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={
-                    (!inputMessage.trim() && !selectedFile) || isSending
-                  }
-                  className="main-btn h-[38px] aspect-square shrink-0 !rounded-lg disabled:opacity-50"
-                >
-                  {isSending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white-500"></div>
-                  ) : (
-                    <Send size={16} />
-                  )}
-                </button>
-              </form>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept="image/*,.pdf,.txt,.doc,.docx"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isInputDisabled}
+                    className="p-2 text-gray-500 border border-gray-300 rounded-lg hover:text-yellow-500 transition duration-500 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Attach file"
+                  >
+                    <Paperclip size={20} />
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      (!inputMessage.trim() && !selectedFile) ||
+                      isSending ||
+                      isInputDisabled
+                    }
+                    className="main-btn h-[38px] aspect-square shrink-0 !rounded-lg disabled:opacity-50"
+                  >
+                    {isSending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white-500"></div>
+                    ) : (
+                      <Send size={16} />
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </>
         )}

@@ -9,7 +9,6 @@ import {
   Send,
   User,
   X,
-  CheckCheck,
   Lock,
   CheckCircle,
   Clock,
@@ -23,6 +22,7 @@ import { toast } from "react-toastify";
 import TypingIndicator from "../../common/TypingIndicator";
 
 const ChatArea = ({
+  refetchConversations,
   selectedConversation,
   selectedFile,
   setSelectedFile,
@@ -44,9 +44,57 @@ const ChatArea = ({
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const lastScrollHeight = useRef(0);
+  const audioRef = useRef(null); // Ref cho audio element
 
   // Check if conversation is resolved
   const isResolved = selectedConversation?.status === "RESOLVED";
+
+  // Initialize audio for notification sound
+  useEffect(() => {
+    // Tạo audio element cho tiếng chuông
+    audioRef.current = new Audio();
+    // Bạn có thể thay đổi đường dẫn này thành file âm thanh của bạn
+    // Hoặc sử dụng data URL cho âm thanh đơn giản
+    audioRef.current.src =
+      "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2+LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DvwmwhBj2a2/LNeSsFJHfH8N2QQAoUX...";
+
+    // Cleanup khi component unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Function để phát âm thanh thông báo
+  const playNotificationSound = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0; // Reset về đầu
+      audioRef.current.play().catch((error) => {
+        console.log("Cannot play notification sound:", error);
+        // Fallback: sử dụng beep đơn giản
+        const context = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+
+        oscillator.frequency.value = 800; // Tần số âm thanh
+        oscillator.type = "sine";
+
+        gainNode.gain.setValueAtTime(0.3, context.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.01,
+          context.currentTime + 0.5
+        );
+
+        oscillator.start(context.currentTime);
+        oscillator.stop(context.currentTime + 0.5);
+      });
+    }
+  }, []);
 
   // Fetch messages với infinite query
   const {
@@ -141,12 +189,30 @@ const ChatArea = ({
   }, [selectedConversation?.sessionId]);
 
   // Initialize WebSocket connection
-  const handleWebSocketMessage = useCallback((message) => {
-    setMessages((prev) => [...prev, message]);
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }, []);
+  const handleWebSocketMessage = useCallback(
+    (message) => {
+      setMessages((prev) => [...prev, message]);
+
+      // Kiểm tra nếu tin nhắn từ USER thì hiển thị thông báo và phát âm thanh
+      if (message.senderType === "USER") {
+        // Hiển thị toast notification
+        toast.info(
+          `${message.senderName || "Guest"}: ${
+            message.content || "Sent a file"
+          }`
+        );
+
+        // Phát âm thanh thông báo
+        playNotificationSound();
+      }
+
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      refetchConversations();
+    },
+    [playNotificationSound, refetchConversations]
+  );
 
   const { sendMessage: sendWebSocketMessage } = useWebSocket(
     selectedConversation?.sessionId,

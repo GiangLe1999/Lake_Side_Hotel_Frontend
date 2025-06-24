@@ -89,15 +89,16 @@ const Conversations = ({
     mutationFn: chatService.deleteConversation,
     onSuccess: () => {
       refetchConversations();
+      setSelectedConversation(null);
       toast.success("Delete conversation successfully.");
     },
     onError: (err) => {
       toast.error("Failed to delete conversation: " + err.message);
     },
   });
-  const confirmDelete = async (conversationId, e) => {
+  const confirmDelete = async (sessionId, e) => {
     e.stopPropagation();
-    comfirmDeleteMutation(conversationId);
+    comfirmDeleteMutation(sessionId);
     setDeleteConfirm(null);
   };
 
@@ -150,7 +151,9 @@ const Conversations = ({
                       </p>
                       <div className="flex space-x-2 justify-center">
                         <button
-                          onClick={(e) => confirmDelete(conversation.id, e)}
+                          onClick={(e) =>
+                            confirmDelete(conversation.sessionId, e)
+                          }
                           className="px-3 py-1.5 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors"
                         >
                           Delete

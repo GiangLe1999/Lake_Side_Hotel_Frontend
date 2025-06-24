@@ -127,6 +127,7 @@ const AdminChatDashboard = () => {
 
       {/* Chat Area */}
       <ChatArea
+        refetchConversations={refetchConversations}
         selectedConversation={selectedConversation}
         selectedFile={selectedFile}
         setSelectedFile={setSelectedFile}

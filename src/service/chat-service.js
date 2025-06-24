@@ -43,7 +43,7 @@ export const chatService = {
   },
 
   deleteConversation: async (sessionId) => {
-    const response = await apiClient.delete(`/chat/admin/${sessionId}`);
+    const response = await apiClient.delete(`/chat/admin/${sessionId}/delete`);
     return response.data;
   },
 };

@@ -46,9 +46,13 @@ const Message = ({ message, isOwn }) => {
           isOwn ? "bg-[#e06c00] text-white" : "bg-gray-200 text-gray-800"
         }`}
       >
-        {!isOwn && message.messageType === "TEXT" && (
-          <p className="text-xs font-semibold text-gray-600 p-4 pb-0">ADMIN</p>
-        )}
+        {!isOwn &&
+          (message.messageType === "TEXT" ||
+            message.messageType === "SYSTEM_MESSAGE") && (
+            <p className="text-xs font-semibold text-gray-600 p-4 pb-0">
+              ADMIN
+            </p>
+          )}
         {renderMessageContent()}
         <div className="px-4 py-2">
           <p className="text-sm max-w-full" style={{ wordBreak: "break-all" }}>
