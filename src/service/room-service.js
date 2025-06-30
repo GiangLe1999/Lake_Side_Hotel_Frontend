@@ -61,3 +61,52 @@ export const getRoomsForHomepage = async () => {
     console.log(error);
   }
 };
+
+export const getRoomFilterCriteria = async () => {
+  try {
+    const response = await apiClient.get(`/rooms/public/filter-criteria`);
+    return response?.data?.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getRoomWithAdvancedSearch = async ({
+  pageNo = 0,
+  pageSize = 6,
+  sortBy = "price",
+  search = {},
+}) => {
+  try {
+    const params = new URLSearchParams({
+      pageNo: pageNo.toString(),
+      pageSize: pageSize.toString(),
+      sortBy,
+      search: "",
+    });
+
+    // Add search parameters
+    if (Object.keys(search).length > 0) {
+      for (const [key, value] of Object.entries(search)) {
+        const currentSearch = params.get("search");
+
+        if (!currentSearch) {
+          params.set("search", `${key}${value}`);
+        } else {
+          params.set("search", `${currentSearch},${key}${value}`);
+        }
+      }
+    }
+
+    const currentSearch = params.get("search");
+    console.log(currentSearch);
+
+    const response = await apiClient.get(
+      `/rooms/public/advanced-search?${params.toString()}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching rooms with advanced search:", error);
+    throw error;
+  }
+};

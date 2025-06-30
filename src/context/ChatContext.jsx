@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-// import { v4 as uuidv4 } from "uuid";
 
 const ChatContext = createContext();
 
@@ -15,7 +14,6 @@ export const ChatProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
     return localStorage.getItem("chat_session_id");
-    //  || uuidv4();
   });
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);

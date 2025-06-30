@@ -36,10 +36,20 @@ export const chatService = {
 
   // Get conversation messages
   getMessages: async ({ sessionId, pageNo = 0, pageSize = 20 }) => {
-    const response = await apiClient.get(`/chat/${sessionId}/messages`, {
-      params: { pageNo, pageSize },
-    });
-    return response.data;
+    try {
+      const response = await apiClient.get(`/chat/${sessionId}/messages`, {
+        params: { pageNo, pageSize },
+      });
+
+      return response.data;
+    } catch (error) {
+      if (
+        error?.data?.status === 404 &&
+        error?.data?.message == "Chat conversation not found"
+      ) {
+        return "Chat conversation not found";
+      }
+    }
   },
 
   deleteConversation: async (sessionId) => {

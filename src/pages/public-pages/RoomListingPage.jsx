@@ -1,287 +1,219 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
-  Filter,
   SlidersHorizontal,
   Grid3X3,
   List,
-  Star,
-  MapPin,
-  Users,
-  Heart,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Calendar,
-  Wifi,
-  Car,
-  Coffee,
-  Tv,
-  Wind,
-  Utensils,
-  Dumbbell,
-  Waves,
-  X,
-  DollarSign,
-  Home,
-  Crown,
-  Building,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import RoomCard from "../../components/common/RoomCard";
+import FilterPanel from "../../components/public-pages/room-listing-page/FilterPanel";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getRoomFilterCriteria,
+  getRoomWithAdvancedSearch,
+} from "../../service/room-service";
 
 const RoomsListingPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("price_asc");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // State derived from URL parameters
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || ""
+  );
+  const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "price");
   const [viewMode, setViewMode] = useState("grid");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("pageNo")) || 0
+  );
+  const [pageSize] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter states
-  const [filters, setFilters] = useState({
-    priceRange: [0, 1000],
-    roomType: [],
-    amenities: [],
-    rating: 0,
-    bedrooms: 0,
-    area: [0, 200],
+  // Parse URL parameters to get filter values
+  const parseFiltersFromURL = useCallback(() => {
+    const amenities = searchParams.get("amenities")?.split("_") || [];
+    const features = searchParams.get("features")?.split("_") || [];
+    const occupancy = searchParams.get("occupancy") || "";
+    const bed = searchParams.get("bed") || "";
+    const roomType = searchParams.get("roomType") || "";
+    const minPrice = parseInt(searchParams.get("minPrice")) || 0;
+    const price = parseInt(searchParams.get("price")) || 1000;
+    const rating = parseInt(searchParams.get("rating")) || 0;
+    const minArea = parseInt(searchParams.get("minArea")) || 0;
+    const area = parseInt(searchParams.get("area")) || 200;
+
+    return {
+      priceRange: [minPrice, price],
+      roomType,
+      amenities,
+      features,
+      occupancy,
+      rating,
+      bed,
+      area: [minArea, area],
+    };
+  }, [searchParams]);
+
+  const [filters, setFilters] = useState(parseFiltersFromURL);
+
+  // Get room filter criteria
+  const { data: roomFilterCriteria, isLoading: getRoomFilterCriteriaLoading } =
+    useQuery({
+      queryKey: ["roomFilterCriteria"],
+      queryFn: getRoomFilterCriteria,
+    });
+
+  // Build search parameters for API call
+  const buildSearchParams = useCallback(() => {
+    const params = {};
+
+    // Add search term if exists
+    if (searchTerm.trim()) {
+      params.name = searchTerm;
+    }
+
+    // Add filters
+    if (filters.amenities.length > 0) {
+      params.amenities = `~${filters.amenities.join("_")}`;
+    }
+
+    if (filters.features.length > 0) {
+      params.features = `~${filters.features.join("_")}`;
+    }
+
+    if (filters.occupancy.trim()) {
+      params.occupancy = `:${filters.occupancy}`;
+    }
+
+    if (filters.bed.trim()) {
+      params.beds = `:${filters.bed}`;
+    }
+
+    if (filters.roomType.trim()) {
+      params.type = `:${filters.roomType}`;
+    }
+
+    if (filters.priceRange[1] < 1000) {
+      params.price = `<${filters.priceRange[1]}`;
+    }
+
+    if (filters.rating > 0) {
+      params.avgRating = `>${filters.rating}`;
+    }
+
+    return params;
+  }, [searchTerm, filters]);
+
+  // API call for rooms with advanced search
+  const {
+    data: roomsData,
+    isLoading: roomsLoading,
+    refetch: refetchRooms,
+  } = useQuery({
+    queryKey: ["rooms", currentPage, pageSize, sortBy, buildSearchParams()],
+    queryFn: () =>
+      getRoomWithAdvancedSearch({
+        pageNo: currentPage,
+        pageSize,
+        sortBy,
+        search: buildSearchParams(),
+      }),
+    keepPreviousData: true,
   });
 
-  // Mock data - replace with your API call
-  const mockRooms = [
-    {
-      id: 1,
-      type: "Luxury Presidential Suite",
-      description:
-        "Experience ultimate luxury in our flagship presidential suite with panoramic city views",
-      price: 899,
-      rating: 4.9,
-      reviews: 156,
-      area: 120,
-      beds: 2,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400",
-      amenities: ["WiFi", "Pool", "Gym", "Spa", "Restaurant", "Bar"],
-      category: "luxury",
-    },
-    {
-      id: 2,
-      type: "Ocean View Deluxe Room",
-      description:
-        "Wake up to breathtaking ocean views in this elegantly appointed deluxe room",
-      price: 299,
-      rating: 4.7,
-      reviews: 89,
-      area: 45,
-      beds: 1,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400",
-      amenities: ["WiFi", "Ocean View", "Balcony", "Mini Bar"],
-      category: "deluxe",
-    },
-    {
-      id: 3,
-      type: "Family Garden Suite",
-      description:
-        "Perfect for families with spacious layout and direct garden access",
-      price: 459,
-      rating: 4.8,
-      reviews: 203,
-      area: 80,
-      beds: 3,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400",
-      amenities: ["WiFi", "Garden View", "Kitchen", "Play Area"],
-      category: "family",
-    },
-    {
-      id: 4,
-      type: "Business Executive Room",
-      description:
-        "Ideal for business travelers with modern amenities and workspace",
-      price: 199,
-      rating: 4.6,
-      reviews: 124,
-      area: 35,
-      beds: 1,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400",
-      amenities: ["WiFi", "Workspace", "Meeting Room Access", "Coffee Machine"],
-      category: "business",
-    },
-    {
-      id: 5,
-      type: "Romantic Honeymoon Suite",
-      description: "Intimate and romantic suite perfect for special occasions",
-      price: 649,
-      rating: 4.9,
-      reviews: 78,
-      area: 65,
-      beds: 1,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400",
-      amenities: ["WiFi", "Jacuzzi", "Champagne", "Rose Petals", "Spa Access"],
-      category: "luxury",
-    },
-    {
-      id: 6,
-      type: "Standard Comfort Room",
-      description:
-        "Comfortable and affordable accommodation with all essential amenities",
-      price: 129,
-      rating: 4.4,
-      reviews: 267,
-      area: 28,
-      beds: 1,
-      thumbnailKey:
-        "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400",
-      amenities: ["WiFi", "Air Conditioning", "TV", "Mini Fridge"],
-      category: "standard",
-    },
-  ];
+  // Update URL when filters, search, or pagination changes
+  const updateURL = useCallback(() => {
+    const newParams = new URLSearchParams();
 
-  const roomTypes = ["luxury", "deluxe", "family", "business", "standard"];
-  const amenitiesList = [
-    "WiFi",
-    "Pool",
-    "Gym",
-    "Spa",
-    "Restaurant",
-    "Bar",
-    "Ocean View",
-    "Balcony",
-    "Kitchen",
-    "Workspace",
-  ];
+    // Add pagination
+    if (currentPage > 0) newParams.set("pageNo", currentPage.toString());
+    newParams.set("pageSize", pageSize.toString());
 
-  const FilterPanel = () => (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-gray-800">Filters</h3>
-        {showFilters && (
-          <button
-            onClick={() => setShowFilters(false)}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-      </div>
+    // Add sort
+    if (sortBy) newParams.set("sortBy", sortBy);
 
-      {/* Price Range */}
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Price Range
-        </label>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>${filters.priceRange[0]}</span>
-            <span>${filters.priceRange[1]}</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="1000"
-            value={filters.priceRange[1]}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                priceRange: [filters.priceRange[0], parseInt(e.target.value)],
-              })
-            }
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-      </div>
+    // Add search
+    if (searchTerm.trim()) newParams.set("search", searchTerm);
 
-      {/* Room Type */}
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Room Type
-        </label>
-        <div className="space-y-2">
-          {roomTypes.map((type) => (
-            <label key={type} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.roomType.includes(type)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters({
-                      ...filters,
-                      roomType: [...filters.roomType, type],
-                    });
-                  } else {
-                    setFilters({
-                      ...filters,
-                      roomType: filters.roomType.filter((t) => t !== type),
-                    });
-                  }
-                }}
-                className="rounded border-gray-300 mr-2"
-              />
-              <span className="text-sm capitalize">{type}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+    // Add filters
+    if (filters.amenities.length > 0) {
+      newParams.set("amenities", filters.amenities.join("_"));
+    }
 
-      {/* Amenities */}
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Amenities
-        </label>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {amenitiesList.map((amenity) => (
-            <label key={amenity} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.amenities.includes(amenity)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters({
-                      ...filters,
-                      amenities: [...filters.amenities, amenity],
-                    });
-                  } else {
-                    setFilters({
-                      ...filters,
-                      amenities: filters.amenities.filter((a) => a !== amenity),
-                    });
-                  }
-                }}
-                className="rounded border-gray-300 mr-2"
-              />
-              <span className="text-sm">{amenity}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+    if (filters.features.length > 0) {
+      newParams.set("features", filters.features.join("_"));
+    }
 
-      {/* Rating */}
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          Minimum Rating
-        </label>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((rating) => (
-            <button
-              key={rating}
-              onClick={() => setFilters({ ...filters, rating })}
-              className={`p-1 ${
-                filters.rating >= rating ? "text-yellow-400" : "text-gray-300"
-              }`}
-            >
-              <Star className="w-5 h-5 fill-current" />
-            </button>
-          ))}
-        </div>
-      </div>
+    if (filters.occupancy.trim()) {
+      newParams.set("occupancy", filters.occupancy);
+    }
 
-      <button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
-        Apply Filters
-      </button>
-    </div>
-  );
+    if (filters.bed.trim()) {
+      newParams.set("bed", filters.bed);
+    }
+
+    if (filters.roomType.trim()) {
+      newParams.set("roomType", filters.roomType);
+    }
+
+    if (filters.priceRange[1] < 1000) {
+      newParams.set("price", filters.priceRange[1].toString());
+    }
+
+    if (filters.rating > 0) {
+      newParams.set("rating", filters.rating.toString());
+    }
+
+    setSearchParams(newParams);
+  }, [currentPage, pageSize, sortBy, searchTerm, filters, setSearchParams]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      updateURL();
+      refetchRooms();
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [updateURL]);
+
+  // Sync state with URL changes (for browser back/forward)
+  useEffect(() => {
+    setSearchTerm(searchParams.get("search") || "");
+    setSortBy(searchParams.get("sortBy") || "price");
+    setCurrentPage(parseInt(searchParams.get("pageNo")) || 0);
+    setFilters(parseFiltersFromURL());
+  }, [searchParams, parseFiltersFromURL]);
+
+  // Handle search input
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(0); // Reset to first page
+  };
+
+  // Handle sort change
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+    setCurrentPage(0); // Reset to first page
+  };
+
+  // Handle filter changes
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(0); // Reset to first page
+  };
+
+  // Handle pagination
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Get rooms and pagination info
+  const rooms = roomsData?.data?.items || [];
+  const totalPages = roomsData?.data?.totalPages || 1;
+  const totalElements = roomsData?.data?.totalItems || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-indigo-50">
@@ -306,8 +238,8 @@ const RoomsListingPage = () => {
                   type="text"
                   placeholder="Search rooms..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 w-full sm:w-80"
+                  onChange={handleSearchChange}
+                  className="main-input !pl-10 pr-4 py-3 w-full sm:w-80"
                 />
               </div>
 
@@ -322,13 +254,14 @@ const RoomsListingPage = () => {
 
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={handleSortChange}
                   className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
                 >
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="rating_desc">Rating: High to Low</option>
-                  <option value="name_asc">Name: A to Z</option>
+                  <option value="price">Price: Low to High</option>
+                  <option value="-price">Price: High to Low</option>
+                  <option value="-rating">Rating: High to Low</option>
+                  <option value="type">Name: A to Z</option>
+                  <option value="-type">Name: Z to A</option>
                 </select>
 
                 <div className="flex border border-gray-200 rounded-xl overflow-hidden">
@@ -369,7 +302,14 @@ const RoomsListingPage = () => {
             } lg:block fixed lg:static inset-0 z-50 lg:z-auto bg-black/50 lg:bg-transparent lg:w-80 lg:shrink-0`}
           >
             <div className="lg:sticky lg:top-8 bg-white lg:bg-transparent h-full lg:h-auto overflow-y-auto lg:overflow-visible p-4 lg:p-0">
-              <FilterPanel />
+              <FilterPanel
+                filters={filters}
+                getRoomFilterCriteriaLoading={getRoomFilterCriteriaLoading}
+                setFilters={handleFiltersChange}
+                showFilters={showFilters}
+                setShowFilters={setShowFilters}
+                roomFilterCriteria={roomFilterCriteria}
+              />
             </div>
           </div>
 
@@ -377,47 +317,75 @@ const RoomsListingPage = () => {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <p className="text-gray-600">
-                Showing{" "}
-                <span className="font-semibold">{mockRooms.length}</span> rooms
+                Showing <span className="font-semibold">{totalElements}</span>{" "}
+                rooms
+                {roomsLoading && (
+                  <span className="ml-2 text-sm text-gray-400">
+                    (Loading...)
+                  </span>
+                )}
               </p>
             </div>
 
-            <div
-              className={`${
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
-                  : "space-y-6"
-              }`}
-            >
-              {mockRooms.map((room) => (
-                <RoomCard key={room.id} room={room} view={viewMode} />
-              ))}
-            </div>
+            {roomsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+              </div>
+            ) : (
+              <div
+                className={`${
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                    : "space-y-6"
+                }`}
+              >
+                {rooms.map((room) => (
+                  <RoomCard key={room.id} room={room} view={viewMode} />
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-2 mt-12">
-              <button className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              {[1, 2, 3, 4, 5].map((page) => (
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-12">
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
-                    currentPage === page
-                      ? "bg-yellow-500 text-white"
-                      : "border border-gray-200 hover:bg-gray-50"
-                  }`}
+                  onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
+                  disabled={currentPage === 0}
+                  className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {page}
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
-              ))}
 
-              <button className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + Math.max(0, currentPage - 2);
+                  if (page >= totalPages) return null;
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
+                        currentPage === page
+                          ? "bg-yellow-500 text-white"
+                          : "border border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page + 1}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() =>
+                    handlePageChange(Math.min(totalPages - 1, currentPage + 1))
+                  }
+                  disabled={currentPage >= totalPages - 1}
+                  className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

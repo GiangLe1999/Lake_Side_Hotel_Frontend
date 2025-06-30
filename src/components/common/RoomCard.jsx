@@ -72,7 +72,7 @@ const RoomCard = ({ room, view = "grid" }) => {
               </div>
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                {room?.rating} ({room?.reviews} reviews)
+                {room?.avgRating} ({room?.reviewCount || 0} reviews)
               </div>
             </div>
 
@@ -132,7 +132,9 @@ const RoomCard = ({ room, view = "grid" }) => {
         </button>
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
           <Star className="w-4 h-4 text-yellow-400 fill-current" />
-          <span className="text-sm font-bold text-gray-800">{4.9}</span>
+          <span className="text-sm font-bold text-gray-800">
+            {room?.avgRating?.toFixed(2) || (0.0).toFixed(1)}
+          </span>
         </div>
       </div>
 
@@ -179,14 +181,14 @@ const RoomCard = ({ room, view = "grid" }) => {
               <Star
                 key={i}
                 className={`w-3 h-3 ${
-                  i < Math.floor(room.rating)
+                  i < Math.floor(room?.avgRating)
                     ? "text-yellow-400 fill-current"
                     : "text-gray-300"
                 }`}
               />
             ))}
           </div>
-          <span>({124} reviews)</span>
+          <span>({room?.reviewCount || 0} reviews)</span>
         </div>
 
         <div className="flex items-center justify-between">

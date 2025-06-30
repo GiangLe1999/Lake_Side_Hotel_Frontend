@@ -10,6 +10,8 @@ import {
   AlertCircle,
   Info,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useChatContext } from "../../../context/ChatContext";
 
 const faqs = [
   {
@@ -80,6 +82,7 @@ const faqs = [
 
 const RoomFAQs = () => {
   const [expandedFAQ, setExpandedFAQ] = useState(null);
+  const { openChat } = useChatContext();
 
   const toggleFAQ = (faqId) => {
     setExpandedFAQ(expandedFAQ === faqId ? null : faqId);
@@ -192,11 +195,17 @@ const RoomFAQs = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition duration-500">
+          <Link
+            to="tel:0962334807"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition duration-500"
+          >
             <Phone className="w-4 h-4" />
             Call Front Desk
-          </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-blue-300 text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-colors">
+          </Link>
+          <button
+            onClick={openChat}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-blue-300 text-blue-700 font-semibold rounded-xl hover:bg-blue-50 transition-colors"
+          >
             <MessageCircle className="w-4 h-4" />
             Live Chat
           </button>

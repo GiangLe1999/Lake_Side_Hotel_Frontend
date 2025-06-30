@@ -454,15 +454,17 @@ const ChatArea = ({
                       isResolved ? "text-gray-600" : "text-gray-900"
                     }`}
                   >
-                    {selectedConversation.guestName || "Anonymous"}
+                    {selectedConversation?.guestName ||
+                      selectedConversation?.userName}
                   </h3>
                   <div
                     className={`flex items-center space-x-2 text-sm ${
                       isResolved ? "text-gray-500" : "text-gray-500"
                     }`}
                   >
-                    {selectedConversation?.guestEmail}
-                    {selectedConversation.roomName && (
+                    {selectedConversation?.guestEmail ||
+                      selectedConversation?.userEmail}
+                    {selectedConversation?.roomName && (
                       <>
                         <span>•</span>
                         <span>{selectedConversation.roomName}</span>

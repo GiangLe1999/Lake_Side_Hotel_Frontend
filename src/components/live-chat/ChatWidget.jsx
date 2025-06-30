@@ -8,7 +8,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import Message from "./Message";
 import { toast } from "react-toastify";
@@ -40,6 +40,7 @@ const ChatWidget = () => {
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [typingIndicator, setTypingIndicator] = useState({
     senderName: "",
     typing: false,
@@ -52,17 +53,101 @@ const ChatWidget = () => {
   const { user } = useAuth();
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const lastScrollHeight = useRef(0);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
+  const existingSessionId = localStorage.getItem("chat_session_id") || "";
+
+  // Fetch messages với infinite query
+  const {
+    data: messagesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: messagesLoading,
+  } = useInfiniteQuery({
+    queryKey: ["messages", existingSessionId],
+    queryFn: ({ pageParam = 0 }) =>
+      chatService.getMessages({
+        sessionId: existingSessionId,
+        pageNo: pageParam,
+        pageSize: 20,
+      }),
+    getNextPageParam: (lastPage) => {
+      const lastPageData = lastPage?.data;
+      const currentPage = lastPageData?.pageNo;
+      const hasNextPage = lastPageData?.hasNextPage;
+      return hasNextPage ? currentPage + 1 : undefined;
+    },
+    staleTime: 10000,
+    enabled: !!existingSessionId && isOpen,
+  });
+
+  // Xử lý scroll để load tin nhắn cũ hơn
+  const handleScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+
+    // Nếu scroll gần đến đầu (20px từ top) và còn có trang tiếp theo
+    if (scrollTop < 20 && hasNextPage && !isFetchingNextPage) {
+      // Lưu vị trí scroll hiện tại
+      lastScrollHeight.current = scrollHeight;
+      setShouldScrollToBottom(false);
+      fetchNextPage();
+    }
+
+    // Nếu scroll gần bottom thì cho phép auto scroll
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      setShouldScrollToBottom(true);
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
+
+  // Cập nhật messages khi có data mới
+  useEffect(() => {
+    if (messagesData?.pages) {
+      if (messagesData?.pages[0] == "Chat conversation not found") {
+        localStorage.removeItem("chat_session_id");
+        initializeChat();
+        return;
+      }
+
+      // Flatten tất cả các pages và reverse để có thứ tự đúng (cũ -> mới)
+      const allMessages = messagesData.pages
+        .flatMap((page) => page.data?.items || [])
+        .reverse();
+
+      setMessages(allMessages);
+    }
+  }, [messagesData]);
+
+  // Auto-scroll to bottom khi có tin nhắn mới hoặc lần đầu load
+  useEffect(() => {
+    if (shouldScrollToBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, shouldScrollToBottom]);
 
   const { mutate: initializeChatMutation, isPending: initializeChatPending } =
     useMutation({
       mutationFn: chatService.initializeChat,
       onSuccess: (response) => {
         if (response?.status === 201) {
-          setSessionId(response?.data?.sessionId);
-          setMessages(response?.data?.messages || []);
+          const sessionId = response?.data;
+          setSessionId(sessionId);
+          localStorage.setItem("chat_session_id", sessionId);
           setIsInitialized(true);
           // Reset conversation status when initializing
           setConversationStatus("ACTIVE");
@@ -126,17 +211,12 @@ const ChatWidget = () => {
     handleWebSocketTyping
   );
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isOpen]);
-
   // Initialize chat when widget opens
   useEffect(() => {
-    if (isOpen && !isInitialized) {
+    if (isOpen && !isInitialized && !existingSessionId) {
       initializeChat();
     }
-  }, [isOpen, isInitialized]);
+  }, [isOpen, isInitialized, existingSessionId]);
 
   // Clear unread count when chat is open
   useEffect(() => {
@@ -440,13 +520,26 @@ const ChatWidget = () => {
         ) : (
           <>
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto min-h-0">
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto min-h-0"
+            >
               <div className="p-4 space-y-2">
                 {initializeChatPending && messages.length === 0 ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="text-gray-500">Loading chat...</div>
                   </div>
-                ) : messages.length === 0 ? (
+                ) : messagesLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="text-center text-gray-500">
+                      <Smile size={32} className="mx-auto mb-2 text-gray-400" />
+                      <p>Loading previous messages...</p>
+                      <p className="text-xs">
+                        Fetching your chat history. Please wait a moment.
+                      </p>
+                    </div>
+                  </div>
+                ) : !messagesLoading && messages.length === 0 ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="text-center text-gray-500">
                       <Smile size={32} className="mx-auto mb-2 text-gray-400" />

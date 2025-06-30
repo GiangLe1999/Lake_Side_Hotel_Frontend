@@ -113,7 +113,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     clearTokens();
+    localStorage.removeItem("chat_session_id");
+    sessionStorage.removeItem("chat_room_id");
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    window.location.reload();
   };
 
   const setUser = (user) => {
