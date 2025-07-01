@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Search,
-  SlidersHorizontal,
-  Grid3X3,
-  List,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Search, SlidersHorizontal, Grid3X3, List } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import RoomCard from "../../components/common/RoomCard";
 import FilterPanel from "../../components/public-pages/room-listing-page/FilterPanel";
@@ -15,6 +8,7 @@ import {
   getRoomFilterCriteria,
   getRoomWithAdvancedSearch,
 } from "../../service/room-service";
+import Pagination from "../../components/common/pagination/Pagination";
 
 const RoomsListingPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,13 +17,21 @@ const RoomsListingPage = () => {
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || ""
   );
+  const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "price");
   const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(
     parseInt(searchParams.get("pageNo")) || 0
   );
-  const [pageSize] = useState(6);
+  const pageSize = 6;
   const [showFilters, setShowFilters] = useState(false);
+
+  // Get room filter criteria
+  const { data: roomFilterCriteria, isLoading: getRoomFilterCriteriaLoading } =
+    useQuery({
+      queryKey: ["roomFilterCriteria"],
+      queryFn: getRoomFilterCriteria,
+    });
 
   // Parse URL parameters to get filter values
   const parseFiltersFromURL = useCallback(() => {
@@ -38,11 +40,11 @@ const RoomsListingPage = () => {
     const occupancy = searchParams.get("occupancy") || "";
     const bed = searchParams.get("bed") || "";
     const roomType = searchParams.get("roomType") || "";
-    const minPrice = parseInt(searchParams.get("minPrice")) || 0;
-    const price = parseInt(searchParams.get("price")) || 1000;
+    const minPrice =
+      parseFloat(searchParams.get("minPrice")) || roomFilterCriteria?.minPrice;
+    const price =
+      parseFloat(searchParams.get("price")) || roomFilterCriteria?.maxPrice;
     const rating = parseInt(searchParams.get("rating")) || 0;
-    const minArea = parseInt(searchParams.get("minArea")) || 0;
-    const area = parseInt(searchParams.get("area")) || 200;
 
     return {
       priceRange: [minPrice, price],
@@ -52,18 +54,10 @@ const RoomsListingPage = () => {
       occupancy,
       rating,
       bed,
-      area: [minArea, area],
     };
   }, [searchParams]);
 
   const [filters, setFilters] = useState(parseFiltersFromURL);
-
-  // Get room filter criteria
-  const { data: roomFilterCriteria, isLoading: getRoomFilterCriteriaLoading } =
-    useQuery({
-      queryKey: ["roomFilterCriteria"],
-      queryFn: getRoomFilterCriteria,
-    });
 
   // Build search parameters for API call
   const buildSearchParams = useCallback(() => {
@@ -71,7 +65,7 @@ const RoomsListingPage = () => {
 
     // Add search term if exists
     if (searchTerm.trim()) {
-      params.name = searchTerm;
+      params.name = `:${searchTerm}`;
     }
 
     // Add filters
@@ -123,13 +117,14 @@ const RoomsListingPage = () => {
     keepPreviousData: true,
   });
 
+  console.log(sortBy);
+
   // Update URL when filters, search, or pagination changes
   const updateURL = useCallback(() => {
     const newParams = new URLSearchParams();
 
     // Add pagination
     if (currentPage > 0) newParams.set("pageNo", currentPage.toString());
-    newParams.set("pageSize", pageSize.toString());
 
     // Add sort
     if (sortBy) newParams.set("sortBy", sortBy);
@@ -158,7 +153,7 @@ const RoomsListingPage = () => {
       newParams.set("roomType", filters.roomType);
     }
 
-    if (filters.priceRange[1] < 1000) {
+    if (filters.priceRange[1] > 0) {
       newParams.set("price", filters.priceRange[1].toString());
     }
 
@@ -188,9 +183,18 @@ const RoomsListingPage = () => {
   }, [searchParams, parseFiltersFromURL]);
 
   // Handle search input
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(0); // Reset to first page
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput);
+      setCurrentPage(0);
+    }, 500); // delay 500ms
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const onInputChange = (e) => {
+    setSearchInput(e.target.value);
   };
 
   // Handle sort change
@@ -203,11 +207,6 @@ const RoomsListingPage = () => {
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(0); // Reset to first page
-  };
-
-  // Handle pagination
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
   };
 
   // Get rooms and pagination info
@@ -237,8 +236,8 @@ const RoomsListingPage = () => {
                 <input
                   type="text"
                   placeholder="Search rooms..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
+                  value={searchInput}
+                  onChange={onInputChange}
                   className="main-input !pl-10 pr-4 py-3 w-full sm:w-80"
                 />
               </div>
@@ -255,11 +254,11 @@ const RoomsListingPage = () => {
                 <select
                   value={sortBy}
                   onChange={handleSortChange}
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                  className="px-4 py-3 main-input"
                 >
                   <option value="price">Price: Low to High</option>
                   <option value="-price">Price: High to Low</option>
-                  <option value="-rating">Rating: High to Low</option>
+                  <option value="-avgRating">Rating: High to Low</option>
                   <option value="type">Name: A to Z</option>
                   <option value="-type">Name: Z to A</option>
                 </select>
@@ -345,47 +344,17 @@ const RoomsListingPage = () => {
               </div>
             )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12">
-                <button
-                  onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
-                  disabled={currentPage === 0}
-                  className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const page = i + Math.max(0, currentPage - 2);
-                  if (page >= totalPages) return null;
-
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
-                        currentPage === page
-                          ? "bg-yellow-500 text-white"
-                          : "border border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page + 1}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() =>
-                    handlePageChange(Math.min(totalPages - 1, currentPage + 1))
-                  }
-                  disabled={currentPage >= totalPages - 1}
-                  className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+            <div className="mt-8">
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  pageCount={totalPages}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  className="user-ui-pagination"
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

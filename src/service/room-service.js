@@ -98,9 +98,6 @@ export const getRoomWithAdvancedSearch = async ({
       }
     }
 
-    const currentSearch = params.get("search");
-    console.log(currentSearch);
-
     const response = await apiClient.get(
       `/rooms/public/advanced-search?${params.toString()}`
     );

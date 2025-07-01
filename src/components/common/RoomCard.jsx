@@ -21,13 +21,13 @@ const RoomCard = ({ room, view = "grid" }) => {
     return (
       <Link
         to={`/room/${room?.id}`}
-        className="block bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
+        className="block bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden"
       >
         <div className="flex flex-col md:flex-row">
           <div className="relative md:w-80 h-48 md:h-auto">
             <img
               src={getPublicS3Url(room?.thumbnailKey || "")}
-              alt={room?.type}
+              alt={room?.name}
               className="w-full h-full object-cover"
             />
             <button
@@ -48,16 +48,12 @@ const RoomCard = ({ room, view = "grid" }) => {
           <div className="flex-1 p-6">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-1">
-                  {room?.type}
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  {room?.name}
                 </h3>
-                <p className="text-gray-600 text-sm">{room?.description}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {formatPriceUSD(room?.price)}
-                </div>
-                <div className="text-sm text-gray-500">per night</div>
+                <p className="text-gray-600 text-sm line-clamp-4 leading-6">
+                  {room?.description}
+                </p>
               </div>
             </div>
 
@@ -97,9 +93,16 @@ const RoomCard = ({ room, view = "grid" }) => {
               {room?.features?.slice(0, 3).join(" • ")}
             </div>
 
-            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300">
-              Book Now
-            </button>
+            <div className="flex items-center justify-between gap-4 mt-4">
+              <div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  {formatPriceUSD(room?.price)}
+                </div>
+                <div className="text-sm text-gray-500">per night</div>
+              </div>
+
+              <button className="px-6 py-2 main-btn">Book Now</button>
+            </div>
           </div>
         </div>
       </Link>
@@ -108,17 +111,21 @@ const RoomCard = ({ room, view = "grid" }) => {
 
   return (
     <Link
+      key={room.id}
       to={`/room/${room.id}`}
-      className="block bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden"
+      className="flex flex-col bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden h-full"
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <img
           src={getPublicS3Url(room?.thumbnailKey || "")}
-          alt={room?.type}
+          alt={room?.name}
           className="w-full h-64 object-cover"
         />
         <button
-          onClick={() => toggleFavorite(room?.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleFavorite(room?.id);
+          }}
           className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300 shadow-lg"
         >
           <Heart
@@ -138,11 +145,17 @@ const RoomCard = ({ room, view = "grid" }) => {
         </div>
       </div>
 
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{room.type}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {room?.description}
-        </p>
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">
+          {room.name}
+        </h3>
+
+        {/* Fixed height cho description */}
+        <div className="h-12 mb-4">
+          <p className="text-gray-600 text-sm line-clamp-2">
+            {room?.description}
+          </p>
+        </div>
 
         <div className="flex items-center gap-4 mb-5 text-sm text-gray-500">
           <div className="flex items-center">
@@ -155,9 +168,8 @@ const RoomCard = ({ room, view = "grid" }) => {
           </div>
         </div>
 
-        {/* Amenities */}
-        <div className="mb-4">
-          <div className="flex flex-wrap gap-2 mb-5">
+        <div className="mb-4 flex-grow">
+          <div className="flex flex-wrap gap-2 mb-3">
             {room?.amenities?.slice(0, 3).map((amenity, amenityIndex) => (
               <span
                 key={amenityIndex}
@@ -168,8 +180,8 @@ const RoomCard = ({ room, view = "grid" }) => {
             ))}
           </div>
 
-          {/* Additional Features */}
-          <div className="text-xs text-gray-500">
+          {/* Fixed height cho features */}
+          <div className="text-xs text-gray-500 h-4 line-clamp-1 mt-4">
             {room?.features?.slice(0, 3).join(" • ")}
           </div>
         </div>
@@ -191,7 +203,8 @@ const RoomCard = ({ room, view = "grid" }) => {
           <span>({room?.reviewCount || 0} reviews)</span>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Price section luôn ở bottom */}
+        <div className="flex items-center justify-between mt-auto">
           <div>
             <div className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
               {formatPriceUSD(room?.price)}

@@ -71,6 +71,11 @@ const FilterPanel = ({
     o.toString()
   );
 
+  const currentValue = filters.priceRange[1];
+  const minValue = roomFilterCriteria?.minPrice;
+  const maxValue = roomFilterCriteria?.maxPrice;
+  const percentage = ((currentValue - minValue) / (maxValue - minValue)) * 100;
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -99,26 +104,41 @@ const FilterPanel = ({
           Price Range
         </label>
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>{formatPriceUSD(roomFilterCriteria?.minPrice)}</span>
-            <span>{formatPriceUSD(roomFilterCriteria?.maxPrice)}</span>
+          {/* Container cho slider với value hiển thị */}
+          <div className="relative">
+            {/* Hiển thị giá trị hiện tại theo vị trí thumb */}
+            <div
+              className="absolute -top-10 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-150 ease-out z-10"
+              style={{ left: `${percentage}%` }}
+            >
+              {formatPriceUSD(currentValue)}
+              {/* Mũi tên nhỏ */}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-orange-600"></div>
+            </div>
+
+            <input
+              type="range"
+              min={minValue}
+              max={maxValue}
+              value={filters.priceRange[1]}
+              onChange={(e) =>
+                setFilters({
+                  ...filters,
+                  priceRange: [minValue, parseFloat(e.target.value)],
+                })
+              }
+              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider focus:outline-none"
+              style={{
+                background: `linear-gradient(to right, #f97316 0%, #f97316 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`,
+              }}
+            />
           </div>
-          <input
-            type="range"
-            min={roomFilterCriteria?.minPrice}
-            max={roomFilterCriteria?.maxPrice}
-            value={filters.priceRange[1]}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                priceRange: [
-                  roomFilterCriteria?.minPrice,
-                  parseFloat(e.target.value),
-                ],
-              })
-            }
-            className="w-full h-2 !bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
+
+          {/* Hiển thị range hiện tại */}
+          <div className="text-center text-sm text-gray-600 mt-2">
+            Selected: {formatPriceUSD(filters.priceRange[0])} -{" "}
+            {formatPriceUSD(filters.priceRange[1])}
+          </div>
         </div>
       </div>
 
