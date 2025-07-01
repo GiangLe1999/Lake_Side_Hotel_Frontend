@@ -263,12 +263,12 @@ const RoomsListingPage = () => {
                   <option value="-type">Name: Z to A</option>
                 </select>
 
-                <div className="flex border border-gray-200 rounded-xl overflow-hidden">
+                <div className="grid grid-cols-2 border border-gray-300 rounded-xl overflow-hidden w-[140px]">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-3 ${
+                    className={`w-full grid place-items-center ${
                       viewMode === "grid"
-                        ? "bg-yellow-500 text-white"
+                        ? "main-btn !rounded-r-none"
                         : "bg-white text-gray-600 hover:bg-gray-50"
                     } transition-colors`}
                   >
@@ -276,9 +276,9 @@ const RoomsListingPage = () => {
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-3 ${
+                    className={`w-full grid place-items-center ${
                       viewMode === "list"
-                        ? "bg-yellow-500 text-white"
+                        ? "main-btn !rounded-l-none"
                         : "bg-white text-gray-600 hover:bg-gray-50"
                     } transition-colors`}
                   >

@@ -10,6 +10,7 @@ import {
   Heart,
   Camera,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const SimilarRooms = ({ currentRoom }) => {
   // Mock data - replace with actual similar rooms from your API
@@ -76,10 +77,13 @@ const SimilarRooms = ({ currentRoom }) => {
           </div>
           <h3 className="text-2xl font-bold text-gray-800">Similar Rooms</h3>
         </div>
-        <button className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center gap-1 transition-colors">
+        <Link
+          to="/room-listing"
+          className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center gap-1 transition-colors"
+        >
           View All
           <ArrowRight className="w-4 h-4" />
-        </button>
+        </Link>
       </div>
 
       <div className="space-y-6">

@@ -15,6 +15,9 @@ import RoomsListingPage from "./pages/public-pages/RoomListingPage";
 import LiveChatButton from "./components/live-chat/LiveChatButton";
 import ChatWidget from "./components/live-chat/ChatWidget";
 import DashboardCustomerSupportPage from "./pages/dashboard-pages/DashboardCustomerSupport";
+import ServicesPage from "./pages/public-pages/ServicesPage";
+import AboutUsPage from "./pages/public-pages/AboutUsPage";
+import ContactPage from "./pages/public-pages/ContactPage";
 
 function App() {
   return (
@@ -26,6 +29,9 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="room/:id" element={<RoomDetailPage />} />
             <Route path="room-listing" element={<RoomsListingPage />} />
+            <Route path="services" element={<ServicesPage />} />
+            <Route path="about-us" element={<AboutUsPage />} />
+            <Route path="contact" element={<ContactPage />} />
             <Route path="/login" element={<AuthPage />} />
           </Route>
 

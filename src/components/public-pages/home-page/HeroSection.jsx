@@ -19,11 +19,6 @@ const HeroSection = () => {
       {/* Animated background overlay */}
       <div className="absolute inset-0 bg-black opacity-50 z-1"></div>
 
-      {/* Floating elements for visual interest */}
-      <div className="absolute top-20 left-10 w-4 h-4 bg-yellow-400 rounded-full opacity-60 animate-pulse"></div>
-      <div className="absolute top-40 right-20 w-6 h-6 bg-pink-400 rounded-full opacity-40 animate-bounce delay-300"></div>
-      <div className="absolute bottom-32 left-20 w-3 h-3 bg-blue-400 rounded-full opacity-50 animate-pulse delay-700"></div>
-
       <div
         className="absolute inset-0 bg-cover bg-center transform hover:scale-105 transition-transform duration-[20s]"
         style={{

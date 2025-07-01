@@ -131,10 +131,10 @@ const Header = () => {
               Services
             </Link>
             <Link
-              to="/about"
-              onClick={() => setCurrentPage("about")}
+              to="/about-us"
+              onClick={() => setCurrentPage("about-us")}
               className={`hover:text-yellow-600 transition-colors ${
-                currentPage === "about"
+                currentPage === "about-us"
                   ? "text-yellow-600 font-semibold"
                   : "text-gray-700"
               }`}
@@ -340,9 +340,9 @@ const Header = () => {
                 Services
               </Link>
               <Link
-                to="/about"
+                to="/about-us"
                 onClick={() => {
-                  setCurrentPage("about");
+                  setCurrentPage("about-us");
                   setMobileMenuOpen(false);
                 }}
                 className="block px-3 py-2 text-gray-700 hover:text-yellow-600"
