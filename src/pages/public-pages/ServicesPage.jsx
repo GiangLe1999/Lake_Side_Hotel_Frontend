@@ -125,7 +125,7 @@ const ServicesPage = () => {
     },
     {
       name: "Fitness Center",
-      description: "State-of-the-art equipment with personal trainers",
+      description: "State-of-the-art equipment with PT",
       treatments: [
         "Personal training",
         "Yoga classes",

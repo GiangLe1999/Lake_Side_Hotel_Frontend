@@ -100,6 +100,7 @@ const BookingCard = ({ roomData }) => {
 
   // Prepare booking data for CustomerInfo component
   const bookingData = {
+    roomName: roomData?.name,
     checkIn,
     checkOut,
     guests,

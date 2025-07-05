@@ -1,13 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   addBooking,
-  changePaymentMethod,
   confirmBooking,
   resendConfirmationCode,
 } from "../service/booking-service";
 import { toast } from "react-toastify";
-import paymentTypes from "../constants/payment-type";
-import { useNavigate } from "react-router-dom";
 
 const useBookingMutations = (
   setBookingId,
@@ -15,8 +12,6 @@ const useBookingMutations = (
   startTimer,
   handleShowPayment
 ) => {
-  const navigate = useNavigate();
-
   const addBookingMutation = useMutation({
     mutationFn: addBooking,
     onSuccess: (response) => {
@@ -73,33 +68,10 @@ const useBookingMutations = (
     },
   });
 
-  const changeBookingPaymentMutation = useMutation({
-    mutationFn: changePaymentMethod,
-    onSuccess: (response) => {
-      const success = response?.status === 200;
-      const paymentLabel =
-        response?.data === paymentTypes.CASH ? "Pay at Hotel" : "Pay Online";
-
-      toast[success ? "success" : "error"](
-        success
-          ? `You have selected "${paymentLabel}" successfully.`
-          : `Failed to select "${paymentLabel}". Please try again.`
-      );
-
-      if (success) {
-        navigate("/my-bookings", { replace: true });
-      }
-    },
-    onError: (err) => {
-      toast.error(`Failed to choose payment method. ${err.message}`);
-    },
-  });
-
   return {
     addBookingMutation,
     resendConfirmationCodeMutation,
     confirmBookingMutation,
-    changeBookingPaymentMutation,
   };
 };
 

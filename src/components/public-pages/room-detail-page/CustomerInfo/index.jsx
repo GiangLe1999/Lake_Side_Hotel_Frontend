@@ -182,7 +182,17 @@ const CustomerInfo = ({ roomId, onBack, bookingData }) => {
 
   // Render ChoosePayment component if payment selection is active
   if (showPaymentSelection) {
-    return <ChoosePayment bookingId={bookingId} bookingData={bookingData} />;
+    return (
+      <ChoosePayment
+        bookingId={bookingId}
+        bookingData={bookingData}
+        customerInfo={{
+          name: watchedFullName,
+          email: watchedEmail,
+          tel: watchedTel,
+        }}
+      />
+    );
   }
 
   return (

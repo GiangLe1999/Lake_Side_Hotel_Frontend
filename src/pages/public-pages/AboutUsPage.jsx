@@ -113,8 +113,7 @@ const AboutUsPage = () => {
       name: "James Wellington",
       position: "General Manager",
       experience: "15+ years",
-      specialty:
-        "Luxury hospitality leadership and guest experience innovation",
+      specialty: "Luxury hospitality leadership",
       image:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
       quote:
@@ -147,7 +146,7 @@ const AboutUsPage = () => {
       specialty: "Holistic wellness programs and spa therapy",
       image:
         "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face",
-      quote: "True luxury is the harmony of mind, body, and spirit.",
+      quote: "True luxury is the perfect harmony of mind, body, and spirit.",
     },
   ];
 

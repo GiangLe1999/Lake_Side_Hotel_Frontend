@@ -5,7 +5,12 @@ import SockJS from "sockjs-client";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export const useWebSocket = (sessionId, onMessageReceived, onTyping) => {
+export const useWebSocket = (
+  sessionId,
+  onMessageReceived,
+  onTyping,
+  onPaymentUpdate
+) => {
   const [isConnected, setIsConnected] = useState(false);
   const stompClient = useRef(null);
 
@@ -48,6 +53,14 @@ export const useWebSocket = (sessionId, onMessageReceived, onTyping) => {
           onTyping(typingMessage);
         }
       });
+
+      // Subscribe to payment updates (if needed)
+      if (onPaymentUpdate) {
+        client.subscribe(`/topic/payment/${sessionId}`, (message) => {
+          const paymentMessage = JSON.parse(message.body);
+          onPaymentUpdate(paymentMessage);
+        });
+      }
     };
 
     client.onDisconnect = () => {
