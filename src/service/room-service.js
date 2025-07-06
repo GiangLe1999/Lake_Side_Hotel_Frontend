@@ -62,6 +62,18 @@ export const getRoomsForHomepage = async () => {
   }
 };
 
+export const getRoomsForFavoritesPage = async (roomsId) => {
+  try {
+    const roomIdsString = roomsId.join(",");
+    const response = await apiClient.get(
+      `/rooms/public/for-favorites-page?ids=${roomIdsString}`
+    );
+    return response?.data?.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getRoomFilterCriteria = async () => {
   try {
     const response = await apiClient.get(`/rooms/public/filter-criteria`);

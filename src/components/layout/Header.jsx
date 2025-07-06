@@ -199,6 +199,15 @@ const Header = () => {
               </div>
             </div>
 
+            {!isAuthenticated && (
+              <Link
+                to="/favorites"
+                className="text-gray-600 hover:text-yellow-600 transition-all duration-200 p-2 rounded-lg hover:bg-yellow-50"
+              >
+                <Heart size={20} />
+              </Link>
+            )}
+
             {isAuthenticated ? (
               /* User Dropdown */
               <div className="relative" ref={userDropdownRef}>
@@ -286,8 +295,8 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="md:hidden bg-white border-t border-gray-100">
+            <div className="px-2 pt-2 pb-5 space-y-1">
               {/* Mobile Search */}
               <div className="px-3 py-2">
                 <form onSubmit={handleSearch}>
@@ -307,7 +316,7 @@ const Header = () => {
                 </form>
               </div>
 
-              <hr className="my-2" />
+              <div className="border-t border-gray-100 mt-3" />
 
               <Link
                 to="/"
@@ -360,8 +369,19 @@ const Header = () => {
                 Contact
               </Link>
 
+              <Link
+                to="/favorites"
+                onClick={() => {
+                  setCurrentPage("favorites");
+                  setMobileMenuOpen(false);
+                }}
+                className="block px-3 py-2 text-gray-700 hover:text-yellow-600"
+              >
+                Favorite Rooms
+              </Link>
+
               {/* Mobile Auth Section */}
-              <hr className="my-2" />
+              <div className="border-t border-gray-100 mb-4" />
               {isAuthenticated ? (
                 <>
                   <div className="px-3 py-2 text-sm text-gray-500 bg-gray-50 rounded">
@@ -407,7 +427,7 @@ const Header = () => {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-gray-700 hover:text-yellow-600 border rounded-lg text-center"
+                    className="block px-3 py-2 text-gray-700 hover:text-yellow-600 border border-yellow-600 rounded-lg text-center"
                   >
                     Sign In
                   </Link>

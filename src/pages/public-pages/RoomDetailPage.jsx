@@ -22,7 +22,7 @@ const RoomDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-indigo-50">
-      <SubHeader />
+      <SubHeader room={room} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

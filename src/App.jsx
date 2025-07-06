@@ -18,6 +18,7 @@ import DashboardCustomerSupportPage from "./pages/dashboard-pages/DashboardCusto
 import ServicesPage from "./pages/public-pages/ServicesPage";
 import AboutUsPage from "./pages/public-pages/AboutUsPage";
 import ContactPage from "./pages/public-pages/ContactPage";
+import FavoritesPage from "./pages/public-pages/FavoritesPage";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="about-us" element={<AboutUsPage />} />
             <Route path="contact" element={<ContactPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
             <Route path="/login" element={<AuthPage />} />
           </Route>
 

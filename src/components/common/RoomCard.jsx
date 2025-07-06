@@ -1,22 +1,10 @@
-import React, { useState } from "react";
 import { getPublicS3Url } from "../../utils/get-s3-url";
-import { Heart, MapPin, Star, Users } from "lucide-react";
+import { MapPin, Star, Users } from "lucide-react";
 import formatPriceUSD from "../../utils/format-price";
 import { Link } from "react-router-dom";
+import FavoriteBtn from "./FavoriteBtn";
 
 const RoomCard = ({ room, view = "grid" }) => {
-  const [favorites, setFavorites] = useState(new Set());
-
-  const toggleFavorite = (roomId) => {
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(roomId)) {
-      newFavorites.delete(roomId);
-    } else {
-      newFavorites.add(roomId);
-    }
-    setFavorites(newFavorites);
-  };
-
   if (view === "list") {
     return (
       <Link
@@ -30,19 +18,9 @@ const RoomCard = ({ room, view = "grid" }) => {
               alt={room?.name}
               className="w-full h-full object-cover"
             />
-            <button
-              onClick={() => toggleFavorite(room?.id)}
-              className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300"
-            >
-              <Heart
-                size={16}
-                className={
-                  favorites.has(room?.id)
-                    ? "text-red-500 fill-current"
-                    : "text-gray-600"
-                }
-              />
-            </button>
+            <div className="absolute top-3 right-3 flex gap-2">
+              <FavoriteBtn room={room} />
+            </div>
           </div>
 
           <div className="flex-1 p-6">
@@ -88,7 +66,6 @@ const RoomCard = ({ room, view = "grid" }) => {
               )}
             </div>
 
-            {/* Additional Features */}
             <div className="text-xs text-gray-500">
               {room?.features?.slice(0, 3).join(" • ")}
             </div>
@@ -121,22 +98,9 @@ const RoomCard = ({ room, view = "grid" }) => {
           alt={room?.name}
           className="w-full h-64 object-cover"
         />
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            toggleFavorite(room?.id);
-          }}
-          className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300 shadow-lg"
-        >
-          <Heart
-            size={18}
-            className={
-              favorites.has(room.id)
-                ? "text-red-500 fill-current"
-                : "text-gray-600"
-            }
-          />
-        </button>
+        <div className="absolute top-4 right-4 flex gap-2">
+          <FavoriteBtn size={18} room={room} />
+        </div>
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
           <Star className="w-4 h-4 text-yellow-400 fill-current" />
           <span className="text-sm font-bold text-gray-800">
@@ -150,7 +114,6 @@ const RoomCard = ({ room, view = "grid" }) => {
           {room.name}
         </h3>
 
-        {/* Fixed height cho description */}
         <div className="h-12 mb-4">
           <p className="text-gray-600 text-sm line-clamp-2">
             {room?.description}
@@ -180,13 +143,11 @@ const RoomCard = ({ room, view = "grid" }) => {
             ))}
           </div>
 
-          {/* Fixed height cho features */}
           <div className="text-xs text-gray-500 h-4 line-clamp-1 mt-4">
             {room?.features?.slice(0, 3).join(" • ")}
           </div>
         </div>
 
-        {/* Reviews */}
         <div className="flex items-center gap-2 mb-6 text-sm text-gray-500">
           <div className="flex items-center gap-1">
             {[...Array(5)].map((_, i) => (
@@ -203,7 +164,6 @@ const RoomCard = ({ room, view = "grid" }) => {
           <span>({room?.reviewCount || 0} reviews)</span>
         </div>
 
-        {/* Price section luôn ở bottom */}
         <div className="flex items-center justify-between mt-auto">
           <div>
             <div className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
