@@ -369,16 +369,18 @@ const Header = () => {
                 Contact
               </Link>
 
-              <Link
-                to="/favorites"
-                onClick={() => {
-                  setCurrentPage("favorites");
-                  setMobileMenuOpen(false);
-                }}
-                className="block px-3 py-2 text-gray-700 hover:text-yellow-600"
-              >
-                Favorite Rooms
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  to="/favorites"
+                  onClick={() => {
+                    setCurrentPage("favorites");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block px-3 py-2 text-gray-700 hover:text-yellow-600"
+                >
+                  Favorites
+                </Link>
+              )}
 
               {/* Mobile Auth Section */}
               <div className="border-t border-gray-100 mb-4" />

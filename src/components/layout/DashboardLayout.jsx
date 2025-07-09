@@ -13,8 +13,6 @@ import {
   User,
   Users,
 } from "lucide-react";
-import AddRoomPage from "../../pages/dashboard-pages/DashboardAddRoomPage";
-import DashboardStatsPage from "../../pages/dashboard-pages/DashboardStatsPage";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 // Main Dashboard Component

@@ -43,6 +43,8 @@ input[type="password"]::-webkit-textfield-decoration-container {
 
 .custom-toast {
   font-family: "Caudex", serif;
+  min-width: 400px;
+  align-items: start;
 }
 
 @keyframes fade-in {

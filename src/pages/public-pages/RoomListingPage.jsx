@@ -117,8 +117,6 @@ const RoomsListingPage = () => {
     keepPreviousData: true,
   });
 
-  console.log(sortBy);
-
   // Update URL when filters, search, or pagination changes
   const updateURL = useCallback(() => {
     const newParams = new URLSearchParams();

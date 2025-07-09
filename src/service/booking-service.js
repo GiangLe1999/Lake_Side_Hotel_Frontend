@@ -26,3 +26,17 @@ export const changePaymentMethod = async ({ bookingId, paymentMethod }) => {
   );
   return response.data;
 };
+
+export const getUserBookings = async () => {
+  const response = await apiClient.get("/bookings/user");
+  return response.data.data;
+};
+
+export const cancelUserBooking = async (bookingId) => {
+  const response = await apiClient.put(
+    `/bookings/user/cancel?bookingId=${bookingId}`
+  );
+
+  console.log(response.data.data);
+  return response.data.data;
+};

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { paymentService } from "../../../../service/payment-service";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useWebSocket } from "../../../../hooks/useWebSocket";
+import formatPriceUSD from "../../../../utils/format-price";
 
 const cardElementOptions = {
   style: {
@@ -163,7 +164,9 @@ const PaymentForm = ({ setIsOpen, bookingData, customerInfo }) => {
             </div>
             <div className="flex justify-between items-center text-lg font-semibold pt-3 mt-3 border-t border-white/20">
               <span className="text-white/90">Total Amount:</span>
-              <span className="text-white">${bookingData.totalAmount}</span>
+              <span className="text-white">
+                {formatPriceUSD(bookingData.totalAmount)}
+              </span>
             </div>
           </div>
         </div>
@@ -252,7 +255,7 @@ const PaymentForm = ({ setIsOpen, bookingData, customerInfo }) => {
                 Processing...
               </span>
             ) : (
-              `Pay $${bookingData.totalAmount}`
+              `Pay ${formatPriceUSD(bookingData.totalAmount)}`
             )}
           </button>
         </div>

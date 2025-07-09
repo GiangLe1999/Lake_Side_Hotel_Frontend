@@ -16,13 +16,8 @@ import useFavoriteStore from "../../hooks/useFavoriteStore";
 import { useNavigate } from "react-router-dom";
 
 const FavoritePage = () => {
-  const {
-    favorites,
-    getFavoritesList,
-    getFavoriteCount,
-    clearAllFavorites,
-    removeFavorite,
-  } = useFavoriteStore();
+  const { favorites, getFavoritesList, getFavoriteCount, clearAllFavorites } =
+    useFavoriteStore();
 
   const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(0);
@@ -78,12 +73,6 @@ const FavoritePage = () => {
     setCurrentPage(0);
   };
 
-  // Handle remove single favorite
-  const handleRemoveFavorite = (roomId) => {
-    removeFavorite(roomId);
-    refetchFavoriteRooms();
-  };
-
   // Reset page when favorites change or search changes
   useEffect(() => {
     if (favoriteRoomIds.length === 0) {
@@ -103,7 +92,7 @@ const FavoritePage = () => {
   const favoriteCount = getFavoriteCount();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="container mx-auto px-4 py-6">
@@ -240,17 +229,7 @@ const FavoritePage = () => {
                 }`}
               >
                 {paginatedRooms.map((room) => (
-                  <div key={room.id} className="relative">
-                    <RoomCard room={room} view={viewMode} />
-                    {/* Remove from favorites button */}
-                    <button
-                      onClick={() => handleRemoveFavorite(room.id)}
-                      className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white shadow-lg rounded-full transition-colors z-10"
-                      title="Remove from favorites"
-                    >
-                      <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-                    </button>
-                  </div>
+                  <RoomCard key={room.id} room={room} view={viewMode} />
                 ))}
               </div>
             )}

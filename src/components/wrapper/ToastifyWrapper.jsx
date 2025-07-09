@@ -14,7 +14,7 @@ const ToastifyWrapper = () => {
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="colored" // Giao diện toast (dark, light, colored)
+      theme="light" // Giao diện toast (dark, light, colored)
     />
   );
 };

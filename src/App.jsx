@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+} from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import DashboardStatsPage from "./pages/dashboard-pages/DashboardStatsPage";
 import DashboardAddRoomPage from "./pages/dashboard-pages/DashboardAddRoomPage";
@@ -19,6 +24,7 @@ import ServicesPage from "./pages/public-pages/ServicesPage";
 import AboutUsPage from "./pages/public-pages/AboutUsPage";
 import ContactPage from "./pages/public-pages/ContactPage";
 import FavoritesPage from "./pages/public-pages/FavoritesPage";
+import MyBookingsPage from "./pages/public-pages/MyBookingsPage";
 
 function App() {
   return (
@@ -50,6 +56,19 @@ function App() {
             <Route path="rooms/:id" element={<DashboardEditRoomPage />} />
             <Route path="add-room" element={<DashboardAddRoomPage />} />
             <Route path="chat" element={<DashboardCustomerSupportPage />} />
+          </Route>
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute roles={["USER"]}>
+                <PublicLayout>
+                  <Outlet />
+                </PublicLayout>
+              </ProtectedRoute>
+            }
+          >
+            <Route path="bookings" element={<MyBookingsPage />} />
           </Route>
 
           {/* OAuth callback route */}
