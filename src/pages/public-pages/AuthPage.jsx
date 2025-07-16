@@ -21,6 +21,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
+const backendBaseUrl = import.meta.env.VITE_API_URL;
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -107,8 +108,7 @@ const AuthPage = () => {
   const handleGoogleLogin = () => {
     // Lưu rememberMe option để xử lý sau khi redirect về từ Google
     localStorage.setItem("rememberMe", true.toString());
-    window.location.href =
-      "http://localhost:8080/api/oauth2/authorization/google";
+    window.location.href = `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
   const isPending = isLogin ? loginPending : registerPending;
