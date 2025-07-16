@@ -18,7 +18,10 @@ const GoogleCallback = () => {
         const hash = window.location.hash.substring(1);
 
         if (!hash) {
-          throw new Error("No authentication data received");
+          // Nếu không có hash, kiểm tra xem có phải do Vercel không?
+          console.error("No hash found in URL");
+          navigate("/login");
+          return;
         }
 
         // Parse parameters từ fragment
@@ -60,7 +63,7 @@ const GoogleCallback = () => {
 
         setTimeout(() => {
           window.location.replace("/");
-        }, 1000);
+        }, 2000);
       } catch (error) {
         console.error("Google callback error:", error);
         setError(error.message || "Authentication failed");
