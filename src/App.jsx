@@ -40,7 +40,7 @@ function App() {
             <Route path="about-us" element={<AboutUsPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="favorites" element={<FavoritesPage />} />
-            <Route path="/login" element={<AuthPage />} />
+            <Route path="login" element={<AuthPage />} />
           </Route>
 
           <Route

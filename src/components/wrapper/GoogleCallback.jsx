@@ -14,33 +14,24 @@ const GoogleCallback = () => {
       try {
         setLoading(true);
 
-        // Lấy fragment từ URL (phần sau dấu #)
-        const hash = window.location.hash.substring(1);
+        // Lấy query params thay vì hash
+        const urlParams = new URLSearchParams(window.location.search);
 
-        if (!hash) {
-          // Nếu không có hash, kiểm tra xem có phải do Vercel không?
-          console.error("No hash found in URL");
-          navigate("/login");
-          return;
-        }
-
-        // Parse parameters từ fragment
-        const params = new URLSearchParams(hash);
-
-        // Lấy các thông tin từ URL
-        const accessToken = params.get("accessToken");
-        const refreshToken = params.get("refreshToken");
-        const userId = params.get("userId");
-        const email = params.get("email");
-        const fullName = params.get("fullName");
-        const role = params.get("role");
+        // Lấy các thông tin từ query params
+        const accessToken = urlParams.get("accessToken");
+        const refreshToken = urlParams.get("refreshToken");
+        const userId = urlParams.get("userId");
+        const email = urlParams.get("email");
+        const fullName = urlParams.get("fullName");
+        const role = urlParams.get("role");
 
         // Kiểm tra các thông tin bắt buộc
         if (!accessToken || !refreshToken || !userId || !email) {
+          console.error("Missing auth data in URL:", window.location.href);
           throw new Error("Missing required authentication data");
         }
 
-        // Tạo object user từ thông tin nhận được
+        // Tạo object user
         const user = {
           id: parseInt(userId),
           email: decodeURIComponent(email),
@@ -48,27 +39,27 @@ const GoogleCallback = () => {
           role: role || "USER",
         };
 
-        // Lưu tokens vào localStorage/sessionStorage
+        // Lưu tokens
         saveTokens(accessToken, refreshToken, true);
 
-        // Cập nhật AuthContext với thông tin user
+        // Cập nhật AuthContext
         login(user);
 
-        // Xóa fragment khỏi URL để bảo mật
+        // Xóa query params khỏi URL để bảo mật
         window.history.replaceState(
           {},
           document.title,
           window.location.pathname
         );
 
+        // Redirect về home
         setTimeout(() => {
           window.location.replace("/");
-        }, 2000);
+        }, 1000);
       } catch (error) {
         console.error("Google callback error:", error);
         setError(error.message || "Authentication failed");
 
-        // Redirect về trang login nếu có lỗi
         setTimeout(() => {
           navigate("/login", { replace: true });
         }, 2000);
@@ -81,12 +72,11 @@ const GoogleCallback = () => {
     handleGoogleCallback();
   }, [login, setError, setLoading, navigate]);
 
-  // UI loading/error states
   if (processing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
-        <span className="ml-3 text-gray-600">Loading...</span>
+        <span className="ml-3 text-gray-600">Processing authentication...</span>
       </div>
     );
   }
